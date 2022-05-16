@@ -1,5 +1,280 @@
 // Sources flattened with hardhat v2.3.0 https://hardhat.org
 
+// File @openzeppelin/contracts-upgradeable/token/ERC777/IERC777Upgradeable.sol@v4.5.2
+
+// SPDX-License-Identifier: MIT
+// OpenZeppelin Contracts v4.4.1 (token/ERC777/IERC777.sol)
+
+pragma solidity ^0.8.0;
+
+/**
+ * @dev Interface of the ERC777Token standard as defined in the EIP.
+ *
+ * This contract uses the
+ * https://eips.ethereum.org/EIPS/eip-1820[ERC1820 registry standard] to let
+ * token holders and recipients react to token movements by using setting implementers
+ * for the associated interfaces in said registry. See {IERC1820Registry} and
+ * {ERC1820Implementer}.
+ */
+interface IERC777Upgradeable {
+    /**
+     * @dev Returns the name of the token.
+     */
+    function name() external view returns (string memory);
+
+    /**
+     * @dev Returns the symbol of the token, usually a shorter version of the
+     * name.
+     */
+    function symbol() external view returns (string memory);
+
+    /**
+     * @dev Returns the smallest part of the token that is not divisible. This
+     * means all token operations (creation, movement and destruction) must have
+     * amounts that are a multiple of this number.
+     *
+     * For most token contracts, this value will equal 1.
+     */
+    function granularity() external view returns (uint256);
+
+    /**
+     * @dev Returns the amount of tokens in existence.
+     */
+    function totalSupply() external view returns (uint256);
+
+    /**
+     * @dev Returns the amount of tokens owned by an account (`owner`).
+     */
+    function balanceOf(address owner) external view returns (uint256);
+
+    /**
+     * @dev Moves `amount` tokens from the caller's account to `recipient`.
+     *
+     * If send or receive hooks are registered for the caller and `recipient`,
+     * the corresponding functions will be called with `data` and empty
+     * `operatorData`. See {IERC777Sender} and {IERC777Recipient}.
+     *
+     * Emits a {Sent} event.
+     *
+     * Requirements
+     *
+     * - the caller must have at least `amount` tokens.
+     * - `recipient` cannot be the zero address.
+     * - if `recipient` is a contract, it must implement the {IERC777Recipient}
+     * interface.
+     */
+    function send(
+        address recipient,
+        uint256 amount,
+        bytes calldata data
+    ) external;
+
+    /**
+     * @dev Destroys `amount` tokens from the caller's account, reducing the
+     * total supply.
+     *
+     * If a send hook is registered for the caller, the corresponding function
+     * will be called with `data` and empty `operatorData`. See {IERC777Sender}.
+     *
+     * Emits a {Burned} event.
+     *
+     * Requirements
+     *
+     * - the caller must have at least `amount` tokens.
+     */
+    function burn(uint256 amount, bytes calldata data) external;
+
+    /**
+     * @dev Returns true if an account is an operator of `tokenHolder`.
+     * Operators can send and burn tokens on behalf of their owners. All
+     * accounts are their own operator.
+     *
+     * See {operatorSend} and {operatorBurn}.
+     */
+    function isOperatorFor(address operator, address tokenHolder) external view returns (bool);
+
+    /**
+     * @dev Make an account an operator of the caller.
+     *
+     * See {isOperatorFor}.
+     *
+     * Emits an {AuthorizedOperator} event.
+     *
+     * Requirements
+     *
+     * - `operator` cannot be calling address.
+     */
+    function authorizeOperator(address operator) external;
+
+    /**
+     * @dev Revoke an account's operator status for the caller.
+     *
+     * See {isOperatorFor} and {defaultOperators}.
+     *
+     * Emits a {RevokedOperator} event.
+     *
+     * Requirements
+     *
+     * - `operator` cannot be calling address.
+     */
+    function revokeOperator(address operator) external;
+
+    /**
+     * @dev Returns the list of default operators. These accounts are operators
+     * for all token holders, even if {authorizeOperator} was never called on
+     * them.
+     *
+     * This list is immutable, but individual holders may revoke these via
+     * {revokeOperator}, in which case {isOperatorFor} will return false.
+     */
+    function defaultOperators() external view returns (address[] memory);
+
+    /**
+     * @dev Moves `amount` tokens from `sender` to `recipient`. The caller must
+     * be an operator of `sender`.
+     *
+     * If send or receive hooks are registered for `sender` and `recipient`,
+     * the corresponding functions will be called with `data` and
+     * `operatorData`. See {IERC777Sender} and {IERC777Recipient}.
+     *
+     * Emits a {Sent} event.
+     *
+     * Requirements
+     *
+     * - `sender` cannot be the zero address.
+     * - `sender` must have at least `amount` tokens.
+     * - the caller must be an operator for `sender`.
+     * - `recipient` cannot be the zero address.
+     * - if `recipient` is a contract, it must implement the {IERC777Recipient}
+     * interface.
+     */
+    function operatorSend(
+        address sender,
+        address recipient,
+        uint256 amount,
+        bytes calldata data,
+        bytes calldata operatorData
+    ) external;
+
+    /**
+     * @dev Destroys `amount` tokens from `account`, reducing the total supply.
+     * The caller must be an operator of `account`.
+     *
+     * If a send hook is registered for `account`, the corresponding function
+     * will be called with `data` and `operatorData`. See {IERC777Sender}.
+     *
+     * Emits a {Burned} event.
+     *
+     * Requirements
+     *
+     * - `account` cannot be the zero address.
+     * - `account` must have at least `amount` tokens.
+     * - the caller must be an operator for `account`.
+     */
+    function operatorBurn(
+        address account,
+        uint256 amount,
+        bytes calldata data,
+        bytes calldata operatorData
+    ) external;
+
+    event Sent(
+        address indexed operator,
+        address indexed from,
+        address indexed to,
+        uint256 amount,
+        bytes data,
+        bytes operatorData
+    );
+
+    event Minted(address indexed operator, address indexed to, uint256 amount, bytes data, bytes operatorData);
+
+    event Burned(address indexed operator, address indexed from, uint256 amount, bytes data, bytes operatorData);
+
+    event AuthorizedOperator(address indexed operator, address indexed tokenHolder);
+
+    event RevokedOperator(address indexed operator, address indexed tokenHolder);
+}
+
+
+// File @openzeppelin/contracts-upgradeable/token/ERC777/IERC777RecipientUpgradeable.sol@v4.5.2
+
+// SPDX-License-Identifier: MIT
+// OpenZeppelin Contracts v4.4.1 (token/ERC777/IERC777Recipient.sol)
+
+pragma solidity ^0.8.0;
+
+/**
+ * @dev Interface of the ERC777TokensRecipient standard as defined in the EIP.
+ *
+ * Accounts can be notified of {IERC777} tokens being sent to them by having a
+ * contract implement this interface (contract holders can be their own
+ * implementer) and registering it on the
+ * https://eips.ethereum.org/EIPS/eip-1820[ERC1820 global registry].
+ *
+ * See {IERC1820Registry} and {ERC1820Implementer}.
+ */
+interface IERC777RecipientUpgradeable {
+    /**
+     * @dev Called by an {IERC777} token contract whenever tokens are being
+     * moved or created into a registered account (`to`). The type of operation
+     * is conveyed by `from` being the zero address or not.
+     *
+     * This call occurs _after_ the token contract's state is updated, so
+     * {IERC777-balanceOf}, etc., can be used to query the post-operation state.
+     *
+     * This function may revert to prevent the operation from being executed.
+     */
+    function tokensReceived(
+        address operator,
+        address from,
+        address to,
+        uint256 amount,
+        bytes calldata userData,
+        bytes calldata operatorData
+    ) external;
+}
+
+
+// File @openzeppelin/contracts-upgradeable/token/ERC777/IERC777SenderUpgradeable.sol@v4.5.2
+
+// SPDX-License-Identifier: MIT
+// OpenZeppelin Contracts v4.4.1 (token/ERC777/IERC777Sender.sol)
+
+pragma solidity ^0.8.0;
+
+/**
+ * @dev Interface of the ERC777TokensSender standard as defined in the EIP.
+ *
+ * {IERC777} Token holders can be notified of operations performed on their
+ * tokens by having a contract implement this interface (contract holders can be
+ * their own implementer) and registering it on the
+ * https://eips.ethereum.org/EIPS/eip-1820[ERC1820 global registry].
+ *
+ * See {IERC1820Registry} and {ERC1820Implementer}.
+ */
+interface IERC777SenderUpgradeable {
+    /**
+     * @dev Called by an {IERC777} token contract whenever a registered holder's
+     * (`from`) tokens are about to be moved or destroyed. The type of operation
+     * is conveyed by `to` being the zero address or not.
+     *
+     * This call occurs _before_ the token contract's state is updated, so
+     * {IERC777-balanceOf}, etc., can be used to query the pre-operation state.
+     *
+     * This function may revert to prevent the operation from being executed.
+     */
+    function tokensToSend(
+        address operator,
+        address from,
+        address to,
+        uint256 amount,
+        bytes calldata userData,
+        bytes calldata operatorData
+    ) external;
+}
+
+
 // File @openzeppelin/contracts-upgradeable/token/ERC20/IERC20Upgradeable.sol@v4.5.2
 
 // SPDX-License-Identifier: MIT
@@ -285,107 +560,6 @@ library AddressUpgradeable {
 }
 
 
-// File @openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol@v4.5.2
-
-// SPDX-License-Identifier: MIT
-// OpenZeppelin Contracts v4.4.1 (token/ERC20/utils/SafeERC20.sol)
-
-pragma solidity ^0.8.0;
-
-
-/**
- * @title SafeERC20
- * @dev Wrappers around ERC20 operations that throw on failure (when the token
- * contract returns false). Tokens that return no value (and instead revert or
- * throw on failure) are also supported, non-reverting calls are assumed to be
- * successful.
- * To use this library you can add a `using SafeERC20 for IERC20;` statement to your contract,
- * which allows you to call the safe operations as `token.safeTransfer(...)`, etc.
- */
-library SafeERC20Upgradeable {
-    using AddressUpgradeable for address;
-
-    function safeTransfer(
-        IERC20Upgradeable token,
-        address to,
-        uint256 value
-    ) internal {
-        _callOptionalReturn(token, abi.encodeWithSelector(token.transfer.selector, to, value));
-    }
-
-    function safeTransferFrom(
-        IERC20Upgradeable token,
-        address from,
-        address to,
-        uint256 value
-    ) internal {
-        _callOptionalReturn(token, abi.encodeWithSelector(token.transferFrom.selector, from, to, value));
-    }
-
-    /**
-     * @dev Deprecated. This function has issues similar to the ones found in
-     * {IERC20-approve}, and its usage is discouraged.
-     *
-     * Whenever possible, use {safeIncreaseAllowance} and
-     * {safeDecreaseAllowance} instead.
-     */
-    function safeApprove(
-        IERC20Upgradeable token,
-        address spender,
-        uint256 value
-    ) internal {
-        // safeApprove should only be called when setting an initial allowance,
-        // or when resetting it to zero. To increase and decrease it, use
-        // 'safeIncreaseAllowance' and 'safeDecreaseAllowance'
-        require(
-            (value == 0) || (token.allowance(address(this), spender) == 0),
-            "SafeERC20: approve from non-zero to non-zero allowance"
-        );
-        _callOptionalReturn(token, abi.encodeWithSelector(token.approve.selector, spender, value));
-    }
-
-    function safeIncreaseAllowance(
-        IERC20Upgradeable token,
-        address spender,
-        uint256 value
-    ) internal {
-        uint256 newAllowance = token.allowance(address(this), spender) + value;
-        _callOptionalReturn(token, abi.encodeWithSelector(token.approve.selector, spender, newAllowance));
-    }
-
-    function safeDecreaseAllowance(
-        IERC20Upgradeable token,
-        address spender,
-        uint256 value
-    ) internal {
-        unchecked {
-            uint256 oldAllowance = token.allowance(address(this), spender);
-            require(oldAllowance >= value, "SafeERC20: decreased allowance below zero");
-            uint256 newAllowance = oldAllowance - value;
-            _callOptionalReturn(token, abi.encodeWithSelector(token.approve.selector, spender, newAllowance));
-        }
-    }
-
-    /**
-     * @dev Imitates a Solidity high-level call (i.e. a regular function call to a contract), relaxing the requirement
-     * on the return value: the return value is optional (but if data is returned, it must not be false).
-     * @param token The token targeted by the call.
-     * @param data The call data (encoded using abi.encode or one of its variants).
-     */
-    function _callOptionalReturn(IERC20Upgradeable token, bytes memory data) private {
-        // We need to perform a low level call here, to bypass Solidity's return data size checking mechanism, since
-        // we're implementing it ourselves. We use {Address.functionCall} to perform this call, which verifies that
-        // the target address contains contract code and also asserts for success in the low-level call.
-
-        bytes memory returndata = address(token).functionCall(data, "SafeERC20: low-level call failed");
-        if (returndata.length > 0) {
-            // Return data is optional
-            require(abi.decode(returndata, (bool)), "SafeERC20: ERC20 operation did not succeed");
-        }
-    }
-}
-
-
 // File @openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol@v4.5.2
 
 // SPDX-License-Identifier: MIT
@@ -468,84 +642,6 @@ abstract contract Initializable {
 }
 
 
-// File @openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol@v4.5.2
-
-// SPDX-License-Identifier: MIT
-// OpenZeppelin Contracts v4.4.1 (security/ReentrancyGuard.sol)
-
-pragma solidity ^0.8.0;
-
-/**
- * @dev Contract module that helps prevent reentrant calls to a function.
- *
- * Inheriting from `ReentrancyGuard` will make the {nonReentrant} modifier
- * available, which can be applied to functions to make sure there are no nested
- * (reentrant) calls to them.
- *
- * Note that because there is a single `nonReentrant` guard, functions marked as
- * `nonReentrant` may not call one another. This can be worked around by making
- * those functions `private`, and then adding `external` `nonReentrant` entry
- * points to them.
- *
- * TIP: If you would like to learn more about reentrancy and alternative ways
- * to protect against it, check out our blog post
- * https://blog.openzeppelin.com/reentrancy-after-istanbul/[Reentrancy After Istanbul].
- */
-abstract contract ReentrancyGuardUpgradeable is Initializable {
-    // Booleans are more expensive than uint256 or any type that takes up a full
-    // word because each write operation emits an extra SLOAD to first read the
-    // slot's contents, replace the bits taken up by the boolean, and then write
-    // back. This is the compiler's defense against contract upgrades and
-    // pointer aliasing, and it cannot be disabled.
-
-    // The values being non-zero value makes deployment a bit more expensive,
-    // but in exchange the refund on every call to nonReentrant will be lower in
-    // amount. Since refunds are capped to a percentage of the total
-    // transaction's gas, it is best to keep them low in cases like this one, to
-    // increase the likelihood of the full refund coming into effect.
-    uint256 private constant _NOT_ENTERED = 1;
-    uint256 private constant _ENTERED = 2;
-
-    uint256 private _status;
-
-    function __ReentrancyGuard_init() internal onlyInitializing {
-        __ReentrancyGuard_init_unchained();
-    }
-
-    function __ReentrancyGuard_init_unchained() internal onlyInitializing {
-        _status = _NOT_ENTERED;
-    }
-
-    /**
-     * @dev Prevents a contract from calling itself, directly or indirectly.
-     * Calling a `nonReentrant` function from another `nonReentrant`
-     * function is not supported. It is possible to prevent this from happening
-     * by making the `nonReentrant` function external, and making it call a
-     * `private` function that does the actual work.
-     */
-    modifier nonReentrant() {
-        // On the first call to nonReentrant, _notEntered will be true
-        require(_status != _ENTERED, "ReentrancyGuard: reentrant call");
-
-        // Any calls to nonReentrant after this point will fail
-        _status = _ENTERED;
-
-        _;
-
-        // By storing the original value once again, a refund is triggered (see
-        // https://eips.ethereum.org/EIPS/eip-2200)
-        _status = _NOT_ENTERED;
-    }
-
-    /**
-     * @dev This empty reserved space is put in place to allow future versions to add new
-     * variables without shifting down storage in the inheritance chain.
-     * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
-     */
-    uint256[49] private __gap;
-}
-
-
 // File @openzeppelin/contracts-upgradeable/utils/ContextUpgradeable.sol@v4.5.2
 
 // SPDX-License-Identifier: MIT
@@ -583,1508 +679,6 @@ abstract contract ContextUpgradeable is Initializable {
      * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
      */
     uint256[50] private __gap;
-}
-
-
-// File @openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol@v4.5.2
-
-// SPDX-License-Identifier: MIT
-// OpenZeppelin Contracts v4.4.1 (access/Ownable.sol)
-
-pragma solidity ^0.8.0;
-
-
-/**
- * @dev Contract module which provides a basic access control mechanism, where
- * there is an account (an owner) that can be granted exclusive access to
- * specific functions.
- *
- * By default, the owner account will be the one that deploys the contract. This
- * can later be changed with {transferOwnership}.
- *
- * This module is used through inheritance. It will make available the modifier
- * `onlyOwner`, which can be applied to your functions to restrict their use to
- * the owner.
- */
-abstract contract OwnableUpgradeable is Initializable, ContextUpgradeable {
-    address private _owner;
-
-    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
-
-    /**
-     * @dev Initializes the contract setting the deployer as the initial owner.
-     */
-    function __Ownable_init() internal onlyInitializing {
-        __Ownable_init_unchained();
-    }
-
-    function __Ownable_init_unchained() internal onlyInitializing {
-        _transferOwnership(_msgSender());
-    }
-
-    /**
-     * @dev Returns the address of the current owner.
-     */
-    function owner() public view virtual returns (address) {
-        return _owner;
-    }
-
-    /**
-     * @dev Throws if called by any account other than the owner.
-     */
-    modifier onlyOwner() {
-        require(owner() == _msgSender(), "Ownable: caller is not the owner");
-        _;
-    }
-
-    /**
-     * @dev Leaves the contract without owner. It will not be possible to call
-     * `onlyOwner` functions anymore. Can only be called by the current owner.
-     *
-     * NOTE: Renouncing ownership will leave the contract without an owner,
-     * thereby removing any functionality that is only available to the owner.
-     */
-    function renounceOwnership() public virtual onlyOwner {
-        _transferOwnership(address(0));
-    }
-
-    /**
-     * @dev Transfers ownership of the contract to a new account (`newOwner`).
-     * Can only be called by the current owner.
-     */
-    function transferOwnership(address newOwner) public virtual onlyOwner {
-        require(newOwner != address(0), "Ownable: new owner is the zero address");
-        _transferOwnership(newOwner);
-    }
-
-    /**
-     * @dev Transfers ownership of the contract to a new account (`newOwner`).
-     * Internal function without access restriction.
-     */
-    function _transferOwnership(address newOwner) internal virtual {
-        address oldOwner = _owner;
-        _owner = newOwner;
-        emit OwnershipTransferred(oldOwner, newOwner);
-    }
-
-    /**
-     * @dev This empty reserved space is put in place to allow future versions to add new
-     * variables without shifting down storage in the inheritance chain.
-     * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
-     */
-    uint256[49] private __gap;
-}
-
-
-// File @openzeppelin/contracts-upgradeable/interfaces/draft-IERC1822Upgradeable.sol@v4.5.2
-
-// SPDX-License-Identifier: MIT
-// OpenZeppelin Contracts (last updated v4.5.0) (interfaces/draft-IERC1822.sol)
-
-pragma solidity ^0.8.0;
-
-/**
- * @dev ERC1822: Universal Upgradeable Proxy Standard (UUPS) documents a method for upgradeability through a simplified
- * proxy whose upgrades are fully controlled by the current implementation.
- */
-interface IERC1822ProxiableUpgradeable {
-    /**
-     * @dev Returns the storage slot that the proxiable contract assumes is being used to store the implementation
-     * address.
-     *
-     * IMPORTANT: A proxy pointing at a proxiable contract should not be considered proxiable itself, because this risks
-     * bricking a proxy that upgrades to it, by delegating to itself until out of gas. Thus it is critical that this
-     * function revert if invoked through a proxy.
-     */
-    function proxiableUUID() external view returns (bytes32);
-}
-
-
-// File @openzeppelin/contracts-upgradeable/proxy/beacon/IBeaconUpgradeable.sol@v4.5.2
-
-// SPDX-License-Identifier: MIT
-// OpenZeppelin Contracts v4.4.1 (proxy/beacon/IBeacon.sol)
-
-pragma solidity ^0.8.0;
-
-/**
- * @dev This is the interface that {BeaconProxy} expects of its beacon.
- */
-interface IBeaconUpgradeable {
-    /**
-     * @dev Must return an address that can be used as a delegate call target.
-     *
-     * {BeaconProxy} will check that this address is a contract.
-     */
-    function implementation() external view returns (address);
-}
-
-
-// File @openzeppelin/contracts-upgradeable/utils/StorageSlotUpgradeable.sol@v4.5.2
-
-// SPDX-License-Identifier: MIT
-// OpenZeppelin Contracts v4.4.1 (utils/StorageSlot.sol)
-
-pragma solidity ^0.8.0;
-
-/**
- * @dev Library for reading and writing primitive types to specific storage slots.
- *
- * Storage slots are often used to avoid storage conflict when dealing with upgradeable contracts.
- * This library helps with reading and writing to such slots without the need for inline assembly.
- *
- * The functions in this library return Slot structs that contain a `value` member that can be used to read or write.
- *
- * Example usage to set ERC1967 implementation slot:
- * ```
- * contract ERC1967 {
- *     bytes32 internal constant _IMPLEMENTATION_SLOT = 0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc;
- *
- *     function _getImplementation() internal view returns (address) {
- *         return StorageSlot.getAddressSlot(_IMPLEMENTATION_SLOT).value;
- *     }
- *
- *     function _setImplementation(address newImplementation) internal {
- *         require(Address.isContract(newImplementation), "ERC1967: new implementation is not a contract");
- *         StorageSlot.getAddressSlot(_IMPLEMENTATION_SLOT).value = newImplementation;
- *     }
- * }
- * ```
- *
- * _Available since v4.1 for `address`, `bool`, `bytes32`, and `uint256`._
- */
-library StorageSlotUpgradeable {
-    struct AddressSlot {
-        address value;
-    }
-
-    struct BooleanSlot {
-        bool value;
-    }
-
-    struct Bytes32Slot {
-        bytes32 value;
-    }
-
-    struct Uint256Slot {
-        uint256 value;
-    }
-
-    /**
-     * @dev Returns an `AddressSlot` with member `value` located at `slot`.
-     */
-    function getAddressSlot(bytes32 slot) internal pure returns (AddressSlot storage r) {
-        assembly {
-            r.slot := slot
-        }
-    }
-
-    /**
-     * @dev Returns an `BooleanSlot` with member `value` located at `slot`.
-     */
-    function getBooleanSlot(bytes32 slot) internal pure returns (BooleanSlot storage r) {
-        assembly {
-            r.slot := slot
-        }
-    }
-
-    /**
-     * @dev Returns an `Bytes32Slot` with member `value` located at `slot`.
-     */
-    function getBytes32Slot(bytes32 slot) internal pure returns (Bytes32Slot storage r) {
-        assembly {
-            r.slot := slot
-        }
-    }
-
-    /**
-     * @dev Returns an `Uint256Slot` with member `value` located at `slot`.
-     */
-    function getUint256Slot(bytes32 slot) internal pure returns (Uint256Slot storage r) {
-        assembly {
-            r.slot := slot
-        }
-    }
-}
-
-
-// File @openzeppelin/contracts-upgradeable/proxy/ERC1967/ERC1967UpgradeUpgradeable.sol@v4.5.2
-
-// SPDX-License-Identifier: MIT
-// OpenZeppelin Contracts (last updated v4.5.0) (proxy/ERC1967/ERC1967Upgrade.sol)
-
-pragma solidity ^0.8.2;
-
-
-
-
-
-/**
- * @dev This abstract contract provides getters and event emitting update functions for
- * https://eips.ethereum.org/EIPS/eip-1967[EIP1967] slots.
- *
- * _Available since v4.1._
- *
- * @custom:oz-upgrades-unsafe-allow delegatecall
- */
-abstract contract ERC1967UpgradeUpgradeable is Initializable {
-    function __ERC1967Upgrade_init() internal onlyInitializing {
-    }
-
-    function __ERC1967Upgrade_init_unchained() internal onlyInitializing {
-    }
-    // This is the keccak-256 hash of "eip1967.proxy.rollback" subtracted by 1
-    bytes32 private constant _ROLLBACK_SLOT = 0x4910fdfa16fed3260ed0e7147f7cc6da11a60208b5b9406d12a635614ffd9143;
-
-    /**
-     * @dev Storage slot with the address of the current implementation.
-     * This is the keccak-256 hash of "eip1967.proxy.implementation" subtracted by 1, and is
-     * validated in the constructor.
-     */
-    bytes32 internal constant _IMPLEMENTATION_SLOT = 0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc;
-
-    /**
-     * @dev Emitted when the implementation is upgraded.
-     */
-    event Upgraded(address indexed implementation);
-
-    /**
-     * @dev Returns the current implementation address.
-     */
-    function _getImplementation() internal view returns (address) {
-        return StorageSlotUpgradeable.getAddressSlot(_IMPLEMENTATION_SLOT).value;
-    }
-
-    /**
-     * @dev Stores a new address in the EIP1967 implementation slot.
-     */
-    function _setImplementation(address newImplementation) private {
-        require(AddressUpgradeable.isContract(newImplementation), "ERC1967: new implementation is not a contract");
-        StorageSlotUpgradeable.getAddressSlot(_IMPLEMENTATION_SLOT).value = newImplementation;
-    }
-
-    /**
-     * @dev Perform implementation upgrade
-     *
-     * Emits an {Upgraded} event.
-     */
-    function _upgradeTo(address newImplementation) internal {
-        _setImplementation(newImplementation);
-        emit Upgraded(newImplementation);
-    }
-
-    /**
-     * @dev Perform implementation upgrade with additional setup call.
-     *
-     * Emits an {Upgraded} event.
-     */
-    function _upgradeToAndCall(
-        address newImplementation,
-        bytes memory data,
-        bool forceCall
-    ) internal {
-        _upgradeTo(newImplementation);
-        if (data.length > 0 || forceCall) {
-            _functionDelegateCall(newImplementation, data);
-        }
-    }
-
-    /**
-     * @dev Perform implementation upgrade with security checks for UUPS proxies, and additional setup call.
-     *
-     * Emits an {Upgraded} event.
-     */
-    function _upgradeToAndCallUUPS(
-        address newImplementation,
-        bytes memory data,
-        bool forceCall
-    ) internal {
-        // Upgrades from old implementations will perform a rollback test. This test requires the new
-        // implementation to upgrade back to the old, non-ERC1822 compliant, implementation. Removing
-        // this special case will break upgrade paths from old UUPS implementation to new ones.
-        if (StorageSlotUpgradeable.getBooleanSlot(_ROLLBACK_SLOT).value) {
-            _setImplementation(newImplementation);
-        } else {
-            try IERC1822ProxiableUpgradeable(newImplementation).proxiableUUID() returns (bytes32 slot) {
-                require(slot == _IMPLEMENTATION_SLOT, "ERC1967Upgrade: unsupported proxiableUUID");
-            } catch {
-                revert("ERC1967Upgrade: new implementation is not UUPS");
-            }
-            _upgradeToAndCall(newImplementation, data, forceCall);
-        }
-    }
-
-    /**
-     * @dev Storage slot with the admin of the contract.
-     * This is the keccak-256 hash of "eip1967.proxy.admin" subtracted by 1, and is
-     * validated in the constructor.
-     */
-    bytes32 internal constant _ADMIN_SLOT = 0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103;
-
-    /**
-     * @dev Emitted when the admin account has changed.
-     */
-    event AdminChanged(address previousAdmin, address newAdmin);
-
-    /**
-     * @dev Returns the current admin.
-     */
-    function _getAdmin() internal view returns (address) {
-        return StorageSlotUpgradeable.getAddressSlot(_ADMIN_SLOT).value;
-    }
-
-    /**
-     * @dev Stores a new address in the EIP1967 admin slot.
-     */
-    function _setAdmin(address newAdmin) private {
-        require(newAdmin != address(0), "ERC1967: new admin is the zero address");
-        StorageSlotUpgradeable.getAddressSlot(_ADMIN_SLOT).value = newAdmin;
-    }
-
-    /**
-     * @dev Changes the admin of the proxy.
-     *
-     * Emits an {AdminChanged} event.
-     */
-    function _changeAdmin(address newAdmin) internal {
-        emit AdminChanged(_getAdmin(), newAdmin);
-        _setAdmin(newAdmin);
-    }
-
-    /**
-     * @dev The storage slot of the UpgradeableBeacon contract which defines the implementation for this proxy.
-     * This is bytes32(uint256(keccak256('eip1967.proxy.beacon')) - 1)) and is validated in the constructor.
-     */
-    bytes32 internal constant _BEACON_SLOT = 0xa3f0ad74e5423aebfd80d3ef4346578335a9a72aeaee59ff6cb3582b35133d50;
-
-    /**
-     * @dev Emitted when the beacon is upgraded.
-     */
-    event BeaconUpgraded(address indexed beacon);
-
-    /**
-     * @dev Returns the current beacon.
-     */
-    function _getBeacon() internal view returns (address) {
-        return StorageSlotUpgradeable.getAddressSlot(_BEACON_SLOT).value;
-    }
-
-    /**
-     * @dev Stores a new beacon in the EIP1967 beacon slot.
-     */
-    function _setBeacon(address newBeacon) private {
-        require(AddressUpgradeable.isContract(newBeacon), "ERC1967: new beacon is not a contract");
-        require(
-            AddressUpgradeable.isContract(IBeaconUpgradeable(newBeacon).implementation()),
-            "ERC1967: beacon implementation is not a contract"
-        );
-        StorageSlotUpgradeable.getAddressSlot(_BEACON_SLOT).value = newBeacon;
-    }
-
-    /**
-     * @dev Perform beacon upgrade with additional setup call. Note: This upgrades the address of the beacon, it does
-     * not upgrade the implementation contained in the beacon (see {UpgradeableBeacon-_setImplementation} for that).
-     *
-     * Emits a {BeaconUpgraded} event.
-     */
-    function _upgradeBeaconToAndCall(
-        address newBeacon,
-        bytes memory data,
-        bool forceCall
-    ) internal {
-        _setBeacon(newBeacon);
-        emit BeaconUpgraded(newBeacon);
-        if (data.length > 0 || forceCall) {
-            _functionDelegateCall(IBeaconUpgradeable(newBeacon).implementation(), data);
-        }
-    }
-
-    /**
-     * @dev Same as {xref-Address-functionCall-address-bytes-string-}[`functionCall`],
-     * but performing a delegate call.
-     *
-     * _Available since v3.4._
-     */
-    function _functionDelegateCall(address target, bytes memory data) private returns (bytes memory) {
-        require(AddressUpgradeable.isContract(target), "Address: delegate call to non-contract");
-
-        // solhint-disable-next-line avoid-low-level-calls
-        (bool success, bytes memory returndata) = target.delegatecall(data);
-        return AddressUpgradeable.verifyCallResult(success, returndata, "Address: low-level delegate call failed");
-    }
-
-    /**
-     * @dev This empty reserved space is put in place to allow future versions to add new
-     * variables without shifting down storage in the inheritance chain.
-     * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
-     */
-    uint256[50] private __gap;
-}
-
-
-// File @openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol@v4.5.2
-
-// SPDX-License-Identifier: MIT
-// OpenZeppelin Contracts (last updated v4.5.0) (proxy/utils/UUPSUpgradeable.sol)
-
-pragma solidity ^0.8.0;
-
-
-
-/**
- * @dev An upgradeability mechanism designed for UUPS proxies. The functions included here can perform an upgrade of an
- * {ERC1967Proxy}, when this contract is set as the implementation behind such a proxy.
- *
- * A security mechanism ensures that an upgrade does not turn off upgradeability accidentally, although this risk is
- * reinstated if the upgrade retains upgradeability but removes the security mechanism, e.g. by replacing
- * `UUPSUpgradeable` with a custom implementation of upgrades.
- *
- * The {_authorizeUpgrade} function must be overridden to include access restriction to the upgrade mechanism.
- *
- * _Available since v4.1._
- */
-abstract contract UUPSUpgradeable is Initializable, IERC1822ProxiableUpgradeable, ERC1967UpgradeUpgradeable {
-    function __UUPSUpgradeable_init() internal onlyInitializing {
-    }
-
-    function __UUPSUpgradeable_init_unchained() internal onlyInitializing {
-    }
-    /// @custom:oz-upgrades-unsafe-allow state-variable-immutable state-variable-assignment
-    address private immutable __self = address(this);
-
-    /**
-     * @dev Check that the execution is being performed through a delegatecall call and that the execution context is
-     * a proxy contract with an implementation (as defined in ERC1967) pointing to self. This should only be the case
-     * for UUPS and transparent proxies that are using the current contract as their implementation. Execution of a
-     * function through ERC1167 minimal proxies (clones) would not normally pass this test, but is not guaranteed to
-     * fail.
-     */
-    modifier onlyProxy() {
-        require(address(this) != __self, "Function must be called through delegatecall");
-        require(_getImplementation() == __self, "Function must be called through active proxy");
-        _;
-    }
-
-    /**
-     * @dev Check that the execution is not being performed through a delegate call. This allows a function to be
-     * callable on the implementing contract but not through proxies.
-     */
-    modifier notDelegated() {
-        require(address(this) == __self, "UUPSUpgradeable: must not be called through delegatecall");
-        _;
-    }
-
-    /**
-     * @dev Implementation of the ERC1822 {proxiableUUID} function. This returns the storage slot used by the
-     * implementation. It is used to validate that the this implementation remains valid after an upgrade.
-     *
-     * IMPORTANT: A proxy pointing at a proxiable contract should not be considered proxiable itself, because this risks
-     * bricking a proxy that upgrades to it, by delegating to itself until out of gas. Thus it is critical that this
-     * function revert if invoked through a proxy. This is guaranteed by the `notDelegated` modifier.
-     */
-    function proxiableUUID() external view virtual override notDelegated returns (bytes32) {
-        return _IMPLEMENTATION_SLOT;
-    }
-
-    /**
-     * @dev Upgrade the implementation of the proxy to `newImplementation`.
-     *
-     * Calls {_authorizeUpgrade}.
-     *
-     * Emits an {Upgraded} event.
-     */
-    function upgradeTo(address newImplementation) external virtual onlyProxy {
-        _authorizeUpgrade(newImplementation);
-        _upgradeToAndCallUUPS(newImplementation, new bytes(0), false);
-    }
-
-    /**
-     * @dev Upgrade the implementation of the proxy to `newImplementation`, and subsequently execute the function call
-     * encoded in `data`.
-     *
-     * Calls {_authorizeUpgrade}.
-     *
-     * Emits an {Upgraded} event.
-     */
-    function upgradeToAndCall(address newImplementation, bytes memory data) external payable virtual onlyProxy {
-        _authorizeUpgrade(newImplementation);
-        _upgradeToAndCallUUPS(newImplementation, data, true);
-    }
-
-    /**
-     * @dev Function that should revert when `msg.sender` is not authorized to upgrade the contract. Called by
-     * {upgradeTo} and {upgradeToAndCall}.
-     *
-     * Normally, this function will use an xref:access.adoc[access control] modifier such as {Ownable-onlyOwner}.
-     *
-     * ```solidity
-     * function _authorizeUpgrade(address) internal override onlyOwner {}
-     * ```
-     */
-    function _authorizeUpgrade(address newImplementation) internal virtual;
-
-    /**
-     * @dev This empty reserved space is put in place to allow future versions to add new
-     * variables without shifting down storage in the inheritance chain.
-     * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
-     */
-    uint256[50] private __gap;
-}
-
-
-// File @openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol@v4.5.2
-
-// SPDX-License-Identifier: MIT
-// OpenZeppelin Contracts (last updated v4.5.0) (utils/math/Math.sol)
-
-pragma solidity ^0.8.0;
-
-/**
- * @dev Standard math utilities missing in the Solidity language.
- */
-library MathUpgradeable {
-    /**
-     * @dev Returns the largest of two numbers.
-     */
-    function max(uint256 a, uint256 b) internal pure returns (uint256) {
-        return a >= b ? a : b;
-    }
-
-    /**
-     * @dev Returns the smallest of two numbers.
-     */
-    function min(uint256 a, uint256 b) internal pure returns (uint256) {
-        return a < b ? a : b;
-    }
-
-    /**
-     * @dev Returns the average of two numbers. The result is rounded towards
-     * zero.
-     */
-    function average(uint256 a, uint256 b) internal pure returns (uint256) {
-        // (a + b) / 2 can overflow.
-        return (a & b) + (a ^ b) / 2;
-    }
-
-    /**
-     * @dev Returns the ceiling of the division of two numbers.
-     *
-     * This differs from standard division with `/` in that it rounds up instead
-     * of rounding down.
-     */
-    function ceilDiv(uint256 a, uint256 b) internal pure returns (uint256) {
-        // (a + b - 1) / b can overflow on addition, so we distribute.
-        return a / b + (a % b == 0 ? 0 : 1);
-    }
-}
-
-
-// File @openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol@v4.5.2
-
-// SPDX-License-Identifier: MIT
-// OpenZeppelin Contracts v4.4.1 (utils/math/SafeMath.sol)
-
-pragma solidity ^0.8.0;
-
-// CAUTION
-// This version of SafeMath should only be used with Solidity 0.8 or later,
-// because it relies on the compiler's built in overflow checks.
-
-/**
- * @dev Wrappers over Solidity's arithmetic operations.
- *
- * NOTE: `SafeMath` is generally not needed starting with Solidity 0.8, since the compiler
- * now has built in overflow checking.
- */
-library SafeMathUpgradeable {
-    /**
-     * @dev Returns the addition of two unsigned integers, with an overflow flag.
-     *
-     * _Available since v3.4._
-     */
-    function tryAdd(uint256 a, uint256 b) internal pure returns (bool, uint256) {
-        unchecked {
-            uint256 c = a + b;
-            if (c < a) return (false, 0);
-            return (true, c);
-        }
-    }
-
-    /**
-     * @dev Returns the substraction of two unsigned integers, with an overflow flag.
-     *
-     * _Available since v3.4._
-     */
-    function trySub(uint256 a, uint256 b) internal pure returns (bool, uint256) {
-        unchecked {
-            if (b > a) return (false, 0);
-            return (true, a - b);
-        }
-    }
-
-    /**
-     * @dev Returns the multiplication of two unsigned integers, with an overflow flag.
-     *
-     * _Available since v3.4._
-     */
-    function tryMul(uint256 a, uint256 b) internal pure returns (bool, uint256) {
-        unchecked {
-            // Gas optimization: this is cheaper than requiring 'a' not being zero, but the
-            // benefit is lost if 'b' is also tested.
-            // See: https://github.com/OpenZeppelin/openzeppelin-contracts/pull/522
-            if (a == 0) return (true, 0);
-            uint256 c = a * b;
-            if (c / a != b) return (false, 0);
-            return (true, c);
-        }
-    }
-
-    /**
-     * @dev Returns the division of two unsigned integers, with a division by zero flag.
-     *
-     * _Available since v3.4._
-     */
-    function tryDiv(uint256 a, uint256 b) internal pure returns (bool, uint256) {
-        unchecked {
-            if (b == 0) return (false, 0);
-            return (true, a / b);
-        }
-    }
-
-    /**
-     * @dev Returns the remainder of dividing two unsigned integers, with a division by zero flag.
-     *
-     * _Available since v3.4._
-     */
-    function tryMod(uint256 a, uint256 b) internal pure returns (bool, uint256) {
-        unchecked {
-            if (b == 0) return (false, 0);
-            return (true, a % b);
-        }
-    }
-
-    /**
-     * @dev Returns the addition of two unsigned integers, reverting on
-     * overflow.
-     *
-     * Counterpart to Solidity's `+` operator.
-     *
-     * Requirements:
-     *
-     * - Addition cannot overflow.
-     */
-    function add(uint256 a, uint256 b) internal pure returns (uint256) {
-        return a + b;
-    }
-
-    /**
-     * @dev Returns the subtraction of two unsigned integers, reverting on
-     * overflow (when the result is negative).
-     *
-     * Counterpart to Solidity's `-` operator.
-     *
-     * Requirements:
-     *
-     * - Subtraction cannot overflow.
-     */
-    function sub(uint256 a, uint256 b) internal pure returns (uint256) {
-        return a - b;
-    }
-
-    /**
-     * @dev Returns the multiplication of two unsigned integers, reverting on
-     * overflow.
-     *
-     * Counterpart to Solidity's `*` operator.
-     *
-     * Requirements:
-     *
-     * - Multiplication cannot overflow.
-     */
-    function mul(uint256 a, uint256 b) internal pure returns (uint256) {
-        return a * b;
-    }
-
-    /**
-     * @dev Returns the integer division of two unsigned integers, reverting on
-     * division by zero. The result is rounded towards zero.
-     *
-     * Counterpart to Solidity's `/` operator.
-     *
-     * Requirements:
-     *
-     * - The divisor cannot be zero.
-     */
-    function div(uint256 a, uint256 b) internal pure returns (uint256) {
-        return a / b;
-    }
-
-    /**
-     * @dev Returns the remainder of dividing two unsigned integers. (unsigned integer modulo),
-     * reverting when dividing by zero.
-     *
-     * Counterpart to Solidity's `%` operator. This function uses a `revert`
-     * opcode (which leaves remaining gas untouched) while Solidity uses an
-     * invalid opcode to revert (consuming all remaining gas).
-     *
-     * Requirements:
-     *
-     * - The divisor cannot be zero.
-     */
-    function mod(uint256 a, uint256 b) internal pure returns (uint256) {
-        return a % b;
-    }
-
-    /**
-     * @dev Returns the subtraction of two unsigned integers, reverting with custom message on
-     * overflow (when the result is negative).
-     *
-     * CAUTION: This function is deprecated because it requires allocating memory for the error
-     * message unnecessarily. For custom revert reasons use {trySub}.
-     *
-     * Counterpart to Solidity's `-` operator.
-     *
-     * Requirements:
-     *
-     * - Subtraction cannot overflow.
-     */
-    function sub(
-        uint256 a,
-        uint256 b,
-        string memory errorMessage
-    ) internal pure returns (uint256) {
-        unchecked {
-            require(b <= a, errorMessage);
-            return a - b;
-        }
-    }
-
-    /**
-     * @dev Returns the integer division of two unsigned integers, reverting with custom message on
-     * division by zero. The result is rounded towards zero.
-     *
-     * Counterpart to Solidity's `/` operator. Note: this function uses a
-     * `revert` opcode (which leaves remaining gas untouched) while Solidity
-     * uses an invalid opcode to revert (consuming all remaining gas).
-     *
-     * Requirements:
-     *
-     * - The divisor cannot be zero.
-     */
-    function div(
-        uint256 a,
-        uint256 b,
-        string memory errorMessage
-    ) internal pure returns (uint256) {
-        unchecked {
-            require(b > 0, errorMessage);
-            return a / b;
-        }
-    }
-
-    /**
-     * @dev Returns the remainder of dividing two unsigned integers. (unsigned integer modulo),
-     * reverting with custom message when dividing by zero.
-     *
-     * CAUTION: This function is deprecated because it requires allocating memory for the error
-     * message unnecessarily. For custom revert reasons use {tryMod}.
-     *
-     * Counterpart to Solidity's `%` operator. This function uses a `revert`
-     * opcode (which leaves remaining gas untouched) while Solidity uses an
-     * invalid opcode to revert (consuming all remaining gas).
-     *
-     * Requirements:
-     *
-     * - The divisor cannot be zero.
-     */
-    function mod(
-        uint256 a,
-        uint256 b,
-        string memory errorMessage
-    ) internal pure returns (uint256) {
-        unchecked {
-            require(b > 0, errorMessage);
-            return a % b;
-        }
-    }
-}
-
-
-// File contracts/onda-vesting-v1.sol
-
-// contracts/TokenVesting.sol
-// SPDX-License-Identifier: Apache-2.0
-pragma solidity ^0.8.11;
-
-
-
-
-
-
-
-
-/**
- * @title TokenVesting
- */
-contract ONDA_Vesting_V1 is 
-    Initializable,
-    OwnableUpgradeable,
-    UUPSUpgradeable,
-    ReentrancyGuardUpgradeable {
-    
-    using SafeMathUpgradeable for uint256;
-    using SafeERC20Upgradeable for IERC20Upgradeable;
-    
-    struct VestingSchedule{
-        bool initialized;
-        // beneficiary of tokens after they are released
-        address  beneficiary;
-        // cliff period in seconds
-        uint256  cliff;
-        // start time of the vesting period
-        uint256  start;
-        // duration of the vesting period in seconds
-        uint256  duration;
-        // duration of a slice period for the vesting in seconds
-        uint256 slicePeriodSeconds;
-        // whether or not the vesting is revocable
-        bool  revocable;
-        // total amount of tokens to be released at the end of the vesting
-        uint256 amountTotal;
-        // amount of tokens released
-        uint256  released;
-        // whether or not the vesting has been revoked
-        bool revoked;
-    }
-
-    // address of the ERC20 token
-    IERC20Upgradeable private _token;
-
-    bytes32[] private vestingSchedulesIds;
-    mapping(bytes32 => VestingSchedule) private vestingSchedules;
-    uint256 private vestingSchedulesTotalAmount;
-    mapping(address => uint256) private holdersVestingCount;
-
-    event Released(uint256 amount);
-    event Revoked();
-
-    /**
-    * @dev Reverts if no vesting schedule matches the passed identifier.
-    */
-    modifier onlyIfVestingScheduleExists(bytes32 vestingScheduleId) {
-        require(vestingSchedules[vestingScheduleId].initialized == true);
-        _;
-    }
-
-    /**
-    * @dev Reverts if the vesting schedule does not exist or has been revoked.
-    */
-    modifier onlyIfVestingScheduleNotRevoked(bytes32 vestingScheduleId) {
-        require(vestingSchedules[vestingScheduleId].initialized == true);
-        require(vestingSchedules[vestingScheduleId].revoked == false);
-        _;
-    }
-
-    /**
-     * @dev Creates a vesting contract.
-     * @param token_ address of the ERC20 token contract
-     */
-    function initialize(address token_) public initializer {
-        __Ownable_init();
-        __UUPSUpgradeable_init();
-        require(token_ != address(0x0));
-         _token = IERC20Upgradeable(token_);
-    }
-
-    receive() external payable {}
-
-    fallback() external payable {}
-
-    /**
-    * @dev Returns the number of vesting schedules associated to a beneficiary.
-    * @return the number of vesting schedules
-    */
-    function getVestingSchedulesCountByBeneficiary(address _beneficiary)
-    external
-    view
-    returns(uint256){
-        return holdersVestingCount[_beneficiary];
-    }
-
-    /**
-    * @dev Returns the vesting schedule id at the given index.
-    * @return the vesting id
-    */
-    function getVestingIdAtIndex(uint256 index)
-    external
-    view
-    returns(bytes32){
-        require(index < getVestingSchedulesCount(), "TokenVesting: index out of bounds");
-        return vestingSchedulesIds[index];
-    }
-
-    /**
-    * @notice Returns the vesting schedule information for a given holder and index.
-    * @return the vesting schedule structure information
-    */
-    function getVestingScheduleByAddressAndIndex(address holder, uint256 index)
-    external
-    view
-    returns(VestingSchedule memory){
-        return getVestingSchedule(computeVestingScheduleIdForAddressAndIndex(holder, index));
-    }
-
-
-    /**
-    * @notice Returns the total amount of vesting schedules.
-    * @return the total amount of vesting schedules
-    */
-    function getVestingSchedulesTotalAmount()
-    external
-    view
-    returns(uint256){
-        return vestingSchedulesTotalAmount;
-    }
-
-    /**
-    * @dev Returns the address of the ERC20 token managed by the vesting contract.
-    */
-    function getToken()
-    external
-    view
-    returns(address){
-        return address(_token);
-    }
-
-    /**
-    * @notice Creates a new vesting schedule for a beneficiary.
-    * @param _beneficiary address of the beneficiary to whom vested tokens are transferred
-    * @param _start start time of the vesting period
-    * @param _cliff duration in seconds of the cliff in which tokens will begin to vest
-    * @param _duration duration in seconds of the period in which the tokens will vest
-    * @param _slicePeriodSeconds duration of a slice period for the vesting in seconds
-    * @param _revocable whether the vesting is revocable or not
-    * @param _amount total amount of tokens to be released at the end of the vesting
-    */
-    function createVestingSchedule(
-        address _beneficiary,
-        uint256 _start,
-        uint256 _cliff,
-        uint256 _duration,
-        uint256 _slicePeriodSeconds,
-        bool _revocable,
-        uint256 _amount
-    )
-        public
-        onlyOwner{
-        require(
-            this.getWithdrawableAmount() >= _amount,
-            "TokenVesting: cannot create vesting schedule because not sufficient tokens"
-        );
-        require(_duration > 0, "TokenVesting: duration must be > 0");
-        require(_amount > 0, "TokenVesting: amount must be > 0");
-        require(_slicePeriodSeconds >= 1, "TokenVesting: slicePeriodSeconds must be >= 1");
-        bytes32 vestingScheduleId = this.computeNextVestingScheduleIdForHolder(_beneficiary);
-        uint256 cliff = _start.add(_cliff);
-        vestingSchedules[vestingScheduleId] = VestingSchedule(
-            true,
-            _beneficiary,
-            cliff,
-            _start,
-            _duration,
-            _slicePeriodSeconds,
-            _revocable,
-            _amount,
-            0,
-            false
-        );
-        vestingSchedulesTotalAmount = vestingSchedulesTotalAmount.add(_amount);
-        vestingSchedulesIds.push(vestingScheduleId);
-        uint256 currentVestingCount = holdersVestingCount[_beneficiary];
-        holdersVestingCount[_beneficiary] = currentVestingCount.add(1);
-    }
-
-    /**
-    * @notice Revokes the vesting schedule for given identifier.
-    * @param vestingScheduleId the vesting schedule identifier
-    */
-    function revoke(bytes32 vestingScheduleId)
-        public
-        onlyOwner
-        onlyIfVestingScheduleNotRevoked(vestingScheduleId){
-        VestingSchedule storage vestingSchedule = vestingSchedules[vestingScheduleId];
-        require(vestingSchedule.revocable == true, "TokenVesting: vesting is not revocable");
-        uint256 vestedAmount = _computeReleasableAmount(vestingSchedule);
-        if(vestedAmount > 0){
-            release(vestingScheduleId, vestedAmount);
-        }
-        uint256 unreleased = vestingSchedule.amountTotal.sub(vestingSchedule.released);
-        vestingSchedulesTotalAmount = vestingSchedulesTotalAmount.sub(unreleased);
-        vestingSchedule.revoked = true;
-    }
-
-    /**
-    * @notice Withdraw the specified amount if possible.
-    * @param amount the amount to withdraw
-    */
-    function withdraw(uint256 amount)
-        public
-        nonReentrant
-        onlyOwner{
-        require(this.getWithdrawableAmount() >= amount, "TokenVesting: not enough withdrawable funds");
-        _token.safeTransfer(owner(), amount);
-    }
-
-    /**
-    * @notice Release vested amount of tokens.
-    * @param vestingScheduleId the vesting schedule identifier
-    * @param amount the amount to release
-    */
-    function release(
-        bytes32 vestingScheduleId,
-        uint256 amount
-    )
-        public
-        nonReentrant
-        onlyIfVestingScheduleNotRevoked(vestingScheduleId){
-        VestingSchedule storage vestingSchedule = vestingSchedules[vestingScheduleId];
-        bool isBeneficiary = msg.sender == vestingSchedule.beneficiary;
-        bool isOwner = msg.sender == owner();
-        require(
-            isBeneficiary || isOwner,
-            "TokenVesting: only beneficiary and owner can release vested tokens"
-        );
-        uint256 vestedAmount = _computeReleasableAmount(vestingSchedule);
-        require(vestedAmount >= amount, "TokenVesting: cannot release tokens, not enough vested tokens");
-        vestingSchedule.released = vestingSchedule.released.add(amount);
-        address payable beneficiaryPayable = payable(vestingSchedule.beneficiary);
-        vestingSchedulesTotalAmount = vestingSchedulesTotalAmount.sub(amount);
-        _token.safeTransfer(beneficiaryPayable, amount);
-    }
-
-    /**
-    * @dev Returns the number of vesting schedules managed by this contract.
-    * @return the number of vesting schedules
-    */
-    function getVestingSchedulesCount()
-        public
-        view
-        returns(uint256){
-        return vestingSchedulesIds.length;
-    }
-
-    /**
-    * @notice Computes the vested amount of tokens for the given vesting schedule identifier.
-    * @return the vested amount
-    */
-    function computeReleasableAmount(bytes32 vestingScheduleId)
-        public
-        onlyIfVestingScheduleNotRevoked(vestingScheduleId)
-        view
-        returns(uint256){
-        VestingSchedule storage vestingSchedule = vestingSchedules[vestingScheduleId];
-        return _computeReleasableAmount(vestingSchedule);
-    }
-
-    /**
-    * @notice Returns the vesting schedule information for a given identifier.
-    * @return the vesting schedule structure information
-    */
-    function getVestingSchedule(bytes32 vestingScheduleId)
-        public
-        view
-        returns(VestingSchedule memory){
-        return vestingSchedules[vestingScheduleId];
-    }
-
-    /**
-    * @dev Returns the amount of tokens that can be withdrawn by the owner.
-    * @return the amount of tokens
-    */
-    function getWithdrawableAmount()
-        public
-        view
-        returns(uint256){
-        return _token.balanceOf(address(this)).sub(vestingSchedulesTotalAmount);
-    }
-
-    /**
-    * @dev Computes the next vesting schedule identifier for a given holder address.
-    */
-    function computeNextVestingScheduleIdForHolder(address holder)
-        public
-        view
-        returns(bytes32){
-        return computeVestingScheduleIdForAddressAndIndex(holder, holdersVestingCount[holder]);
-    }
-
-    /**
-    * @dev Returns the last vesting schedule for a given holder address.
-    */
-    function getLastVestingScheduleForHolder(address holder)
-        public
-        view
-        returns(VestingSchedule memory){
-        return vestingSchedules[computeVestingScheduleIdForAddressAndIndex(holder, holdersVestingCount[holder] - 1)];
-    }
-
-    /**
-    * @dev Computes the vesting schedule identifier for an address and an index.
-    */
-    function computeVestingScheduleIdForAddressAndIndex(address holder, uint256 index)
-        public
-        pure
-        returns(bytes32){
-        return keccak256(abi.encodePacked(holder, index));
-    }
-
-    function _authorizeUpgrade(address newImplementation)
-        internal
-        override
-        onlyOwner
-    {}
-
-    /**
-    * @dev Computes the releasable amount of tokens for a vesting schedule.
-    * @return the amount of releasable tokens
-    */
-    function _computeReleasableAmount(VestingSchedule memory vestingSchedule)
-    internal
-    view
-    returns(uint256){
-        uint256 currentTime = getCurrentTime();
-        if ((currentTime < vestingSchedule.cliff) || vestingSchedule.revoked == true) {
-            return 0;
-        } else if (currentTime >= vestingSchedule.start.add(vestingSchedule.duration)) {
-            return vestingSchedule.amountTotal.sub(vestingSchedule.released);
-        } else {
-            uint256 timeFromStart = currentTime.sub(vestingSchedule.start);
-            uint secondsPerSlice = vestingSchedule.slicePeriodSeconds;
-            uint256 vestedSlicePeriods = timeFromStart.div(secondsPerSlice);
-            uint256 vestedSeconds = vestedSlicePeriods.mul(secondsPerSlice);
-            uint256 vestedAmount = vestingSchedule.amountTotal.mul(vestedSeconds).div(vestingSchedule.duration);
-            vestedAmount = vestedAmount.sub(vestingSchedule.released);
-            return vestedAmount;
-        }
-    }
-
-    function getCurrentTime()
-        internal
-        virtual
-        view
-        returns(uint256){
-        return block.timestamp;
-    }
-
-}
-
-
-// File contracts/onda-mock-vesting.sol
-
-// contracts/TokenVesting.sol
-// SPDX-License-Identifier: Apache-2.0
-pragma solidity ^0.8.11;
-
-/**
- * @title MockTokenVesting
- * WARNING: use only for testing and debugging purpose
- */
-contract MockTokenVesting is ONDA_Vesting_V1 {
-
-    uint256 mockTime = 0;
-
-    constructor(address token_) {
-        ONDA_Vesting_V1.initialize(token_);
-    }
-
-    function setCurrentTime(uint256 _time)
-        external{
-        mockTime = _time;
-    }
-
-    function getCurrentTime()
-        internal
-        virtual
-        override
-        view
-        returns(uint256){
-        return mockTime;
-    }
-}
-
-
-// File @openzeppelin/contracts-upgradeable/token/ERC777/IERC777Upgradeable.sol@v4.5.2
-
-// SPDX-License-Identifier: MIT
-// OpenZeppelin Contracts v4.4.1 (token/ERC777/IERC777.sol)
-
-pragma solidity ^0.8.0;
-
-/**
- * @dev Interface of the ERC777Token standard as defined in the EIP.
- *
- * This contract uses the
- * https://eips.ethereum.org/EIPS/eip-1820[ERC1820 registry standard] to let
- * token holders and recipients react to token movements by using setting implementers
- * for the associated interfaces in said registry. See {IERC1820Registry} and
- * {ERC1820Implementer}.
- */
-interface IERC777Upgradeable {
-    /**
-     * @dev Returns the name of the token.
-     */
-    function name() external view returns (string memory);
-
-    /**
-     * @dev Returns the symbol of the token, usually a shorter version of the
-     * name.
-     */
-    function symbol() external view returns (string memory);
-
-    /**
-     * @dev Returns the smallest part of the token that is not divisible. This
-     * means all token operations (creation, movement and destruction) must have
-     * amounts that are a multiple of this number.
-     *
-     * For most token contracts, this value will equal 1.
-     */
-    function granularity() external view returns (uint256);
-
-    /**
-     * @dev Returns the amount of tokens in existence.
-     */
-    function totalSupply() external view returns (uint256);
-
-    /**
-     * @dev Returns the amount of tokens owned by an account (`owner`).
-     */
-    function balanceOf(address owner) external view returns (uint256);
-
-    /**
-     * @dev Moves `amount` tokens from the caller's account to `recipient`.
-     *
-     * If send or receive hooks are registered for the caller and `recipient`,
-     * the corresponding functions will be called with `data` and empty
-     * `operatorData`. See {IERC777Sender} and {IERC777Recipient}.
-     *
-     * Emits a {Sent} event.
-     *
-     * Requirements
-     *
-     * - the caller must have at least `amount` tokens.
-     * - `recipient` cannot be the zero address.
-     * - if `recipient` is a contract, it must implement the {IERC777Recipient}
-     * interface.
-     */
-    function send(
-        address recipient,
-        uint256 amount,
-        bytes calldata data
-    ) external;
-
-    /**
-     * @dev Destroys `amount` tokens from the caller's account, reducing the
-     * total supply.
-     *
-     * If a send hook is registered for the caller, the corresponding function
-     * will be called with `data` and empty `operatorData`. See {IERC777Sender}.
-     *
-     * Emits a {Burned} event.
-     *
-     * Requirements
-     *
-     * - the caller must have at least `amount` tokens.
-     */
-    function burn(uint256 amount, bytes calldata data) external;
-
-    /**
-     * @dev Returns true if an account is an operator of `tokenHolder`.
-     * Operators can send and burn tokens on behalf of their owners. All
-     * accounts are their own operator.
-     *
-     * See {operatorSend} and {operatorBurn}.
-     */
-    function isOperatorFor(address operator, address tokenHolder) external view returns (bool);
-
-    /**
-     * @dev Make an account an operator of the caller.
-     *
-     * See {isOperatorFor}.
-     *
-     * Emits an {AuthorizedOperator} event.
-     *
-     * Requirements
-     *
-     * - `operator` cannot be calling address.
-     */
-    function authorizeOperator(address operator) external;
-
-    /**
-     * @dev Revoke an account's operator status for the caller.
-     *
-     * See {isOperatorFor} and {defaultOperators}.
-     *
-     * Emits a {RevokedOperator} event.
-     *
-     * Requirements
-     *
-     * - `operator` cannot be calling address.
-     */
-    function revokeOperator(address operator) external;
-
-    /**
-     * @dev Returns the list of default operators. These accounts are operators
-     * for all token holders, even if {authorizeOperator} was never called on
-     * them.
-     *
-     * This list is immutable, but individual holders may revoke these via
-     * {revokeOperator}, in which case {isOperatorFor} will return false.
-     */
-    function defaultOperators() external view returns (address[] memory);
-
-    /**
-     * @dev Moves `amount` tokens from `sender` to `recipient`. The caller must
-     * be an operator of `sender`.
-     *
-     * If send or receive hooks are registered for `sender` and `recipient`,
-     * the corresponding functions will be called with `data` and
-     * `operatorData`. See {IERC777Sender} and {IERC777Recipient}.
-     *
-     * Emits a {Sent} event.
-     *
-     * Requirements
-     *
-     * - `sender` cannot be the zero address.
-     * - `sender` must have at least `amount` tokens.
-     * - the caller must be an operator for `sender`.
-     * - `recipient` cannot be the zero address.
-     * - if `recipient` is a contract, it must implement the {IERC777Recipient}
-     * interface.
-     */
-    function operatorSend(
-        address sender,
-        address recipient,
-        uint256 amount,
-        bytes calldata data,
-        bytes calldata operatorData
-    ) external;
-
-    /**
-     * @dev Destroys `amount` tokens from `account`, reducing the total supply.
-     * The caller must be an operator of `account`.
-     *
-     * If a send hook is registered for `account`, the corresponding function
-     * will be called with `data` and `operatorData`. See {IERC777Sender}.
-     *
-     * Emits a {Burned} event.
-     *
-     * Requirements
-     *
-     * - `account` cannot be the zero address.
-     * - `account` must have at least `amount` tokens.
-     * - the caller must be an operator for `account`.
-     */
-    function operatorBurn(
-        address account,
-        uint256 amount,
-        bytes calldata data,
-        bytes calldata operatorData
-    ) external;
-
-    event Sent(
-        address indexed operator,
-        address indexed from,
-        address indexed to,
-        uint256 amount,
-        bytes data,
-        bytes operatorData
-    );
-
-    event Minted(address indexed operator, address indexed to, uint256 amount, bytes data, bytes operatorData);
-
-    event Burned(address indexed operator, address indexed from, uint256 amount, bytes data, bytes operatorData);
-
-    event AuthorizedOperator(address indexed operator, address indexed tokenHolder);
-
-    event RevokedOperator(address indexed operator, address indexed tokenHolder);
-}
-
-
-// File @openzeppelin/contracts-upgradeable/token/ERC777/IERC777RecipientUpgradeable.sol@v4.5.2
-
-// SPDX-License-Identifier: MIT
-// OpenZeppelin Contracts v4.4.1 (token/ERC777/IERC777Recipient.sol)
-
-pragma solidity ^0.8.0;
-
-/**
- * @dev Interface of the ERC777TokensRecipient standard as defined in the EIP.
- *
- * Accounts can be notified of {IERC777} tokens being sent to them by having a
- * contract implement this interface (contract holders can be their own
- * implementer) and registering it on the
- * https://eips.ethereum.org/EIPS/eip-1820[ERC1820 global registry].
- *
- * See {IERC1820Registry} and {ERC1820Implementer}.
- */
-interface IERC777RecipientUpgradeable {
-    /**
-     * @dev Called by an {IERC777} token contract whenever tokens are being
-     * moved or created into a registered account (`to`). The type of operation
-     * is conveyed by `from` being the zero address or not.
-     *
-     * This call occurs _after_ the token contract's state is updated, so
-     * {IERC777-balanceOf}, etc., can be used to query the post-operation state.
-     *
-     * This function may revert to prevent the operation from being executed.
-     */
-    function tokensReceived(
-        address operator,
-        address from,
-        address to,
-        uint256 amount,
-        bytes calldata userData,
-        bytes calldata operatorData
-    ) external;
-}
-
-
-// File @openzeppelin/contracts-upgradeable/token/ERC777/IERC777SenderUpgradeable.sol@v4.5.2
-
-// SPDX-License-Identifier: MIT
-// OpenZeppelin Contracts v4.4.1 (token/ERC777/IERC777Sender.sol)
-
-pragma solidity ^0.8.0;
-
-/**
- * @dev Interface of the ERC777TokensSender standard as defined in the EIP.
- *
- * {IERC777} Token holders can be notified of operations performed on their
- * tokens by having a contract implement this interface (contract holders can be
- * their own implementer) and registering it on the
- * https://eips.ethereum.org/EIPS/eip-1820[ERC1820 global registry].
- *
- * See {IERC1820Registry} and {ERC1820Implementer}.
- */
-interface IERC777SenderUpgradeable {
-    /**
-     * @dev Called by an {IERC777} token contract whenever a registered holder's
-     * (`from`) tokens are about to be moved or destroyed. The type of operation
-     * is conveyed by `to` being the zero address or not.
-     *
-     * This call occurs _before_ the token contract's state is updated, so
-     * {IERC777-balanceOf}, etc., can be used to query the pre-operation state.
-     *
-     * This function may revert to prevent the operation from being executed.
-     */
-    function tokensToSend(
-        address operator,
-        address from,
-        address to,
-        uint256 amount,
-        bytes calldata userData,
-        bytes calldata operatorData
-    ) external;
 }
 
 
@@ -2791,15 +1385,557 @@ contract ERC777Upgradeable is Initializable, ContextUpgradeable, IERC777Upgradea
 }
 
 
+// File @openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol@v4.5.2
+
+// SPDX-License-Identifier: MIT
+// OpenZeppelin Contracts v4.4.1 (access/Ownable.sol)
+
+pragma solidity ^0.8.0;
+
+
+/**
+ * @dev Contract module which provides a basic access control mechanism, where
+ * there is an account (an owner) that can be granted exclusive access to
+ * specific functions.
+ *
+ * By default, the owner account will be the one that deploys the contract. This
+ * can later be changed with {transferOwnership}.
+ *
+ * This module is used through inheritance. It will make available the modifier
+ * `onlyOwner`, which can be applied to your functions to restrict their use to
+ * the owner.
+ */
+abstract contract OwnableUpgradeable is Initializable, ContextUpgradeable {
+    address private _owner;
+
+    event OwnershipTransferred(address indexed previousOwner, address indexed newOwner);
+
+    /**
+     * @dev Initializes the contract setting the deployer as the initial owner.
+     */
+    function __Ownable_init() internal onlyInitializing {
+        __Ownable_init_unchained();
+    }
+
+    function __Ownable_init_unchained() internal onlyInitializing {
+        _transferOwnership(_msgSender());
+    }
+
+    /**
+     * @dev Returns the address of the current owner.
+     */
+    function owner() public view virtual returns (address) {
+        return _owner;
+    }
+
+    /**
+     * @dev Throws if called by any account other than the owner.
+     */
+    modifier onlyOwner() {
+        require(owner() == _msgSender(), "Ownable: caller is not the owner");
+        _;
+    }
+
+    /**
+     * @dev Leaves the contract without owner. It will not be possible to call
+     * `onlyOwner` functions anymore. Can only be called by the current owner.
+     *
+     * NOTE: Renouncing ownership will leave the contract without an owner,
+     * thereby removing any functionality that is only available to the owner.
+     */
+    function renounceOwnership() public virtual onlyOwner {
+        _transferOwnership(address(0));
+    }
+
+    /**
+     * @dev Transfers ownership of the contract to a new account (`newOwner`).
+     * Can only be called by the current owner.
+     */
+    function transferOwnership(address newOwner) public virtual onlyOwner {
+        require(newOwner != address(0), "Ownable: new owner is the zero address");
+        _transferOwnership(newOwner);
+    }
+
+    /**
+     * @dev Transfers ownership of the contract to a new account (`newOwner`).
+     * Internal function without access restriction.
+     */
+    function _transferOwnership(address newOwner) internal virtual {
+        address oldOwner = _owner;
+        _owner = newOwner;
+        emit OwnershipTransferred(oldOwner, newOwner);
+    }
+
+    /**
+     * @dev This empty reserved space is put in place to allow future versions to add new
+     * variables without shifting down storage in the inheritance chain.
+     * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
+     */
+    uint256[49] private __gap;
+}
+
+
+// File @openzeppelin/contracts-upgradeable/interfaces/draft-IERC1822Upgradeable.sol@v4.5.2
+
+// SPDX-License-Identifier: MIT
+// OpenZeppelin Contracts (last updated v4.5.0) (interfaces/draft-IERC1822.sol)
+
+pragma solidity ^0.8.0;
+
+/**
+ * @dev ERC1822: Universal Upgradeable Proxy Standard (UUPS) documents a method for upgradeability through a simplified
+ * proxy whose upgrades are fully controlled by the current implementation.
+ */
+interface IERC1822ProxiableUpgradeable {
+    /**
+     * @dev Returns the storage slot that the proxiable contract assumes is being used to store the implementation
+     * address.
+     *
+     * IMPORTANT: A proxy pointing at a proxiable contract should not be considered proxiable itself, because this risks
+     * bricking a proxy that upgrades to it, by delegating to itself until out of gas. Thus it is critical that this
+     * function revert if invoked through a proxy.
+     */
+    function proxiableUUID() external view returns (bytes32);
+}
+
+
+// File @openzeppelin/contracts-upgradeable/proxy/beacon/IBeaconUpgradeable.sol@v4.5.2
+
+// SPDX-License-Identifier: MIT
+// OpenZeppelin Contracts v4.4.1 (proxy/beacon/IBeacon.sol)
+
+pragma solidity ^0.8.0;
+
+/**
+ * @dev This is the interface that {BeaconProxy} expects of its beacon.
+ */
+interface IBeaconUpgradeable {
+    /**
+     * @dev Must return an address that can be used as a delegate call target.
+     *
+     * {BeaconProxy} will check that this address is a contract.
+     */
+    function implementation() external view returns (address);
+}
+
+
+// File @openzeppelin/contracts-upgradeable/utils/StorageSlotUpgradeable.sol@v4.5.2
+
+// SPDX-License-Identifier: MIT
+// OpenZeppelin Contracts v4.4.1 (utils/StorageSlot.sol)
+
+pragma solidity ^0.8.0;
+
+/**
+ * @dev Library for reading and writing primitive types to specific storage slots.
+ *
+ * Storage slots are often used to avoid storage conflict when dealing with upgradeable contracts.
+ * This library helps with reading and writing to such slots without the need for inline assembly.
+ *
+ * The functions in this library return Slot structs that contain a `value` member that can be used to read or write.
+ *
+ * Example usage to set ERC1967 implementation slot:
+ * ```
+ * contract ERC1967 {
+ *     bytes32 internal constant _IMPLEMENTATION_SLOT = 0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc;
+ *
+ *     function _getImplementation() internal view returns (address) {
+ *         return StorageSlot.getAddressSlot(_IMPLEMENTATION_SLOT).value;
+ *     }
+ *
+ *     function _setImplementation(address newImplementation) internal {
+ *         require(Address.isContract(newImplementation), "ERC1967: new implementation is not a contract");
+ *         StorageSlot.getAddressSlot(_IMPLEMENTATION_SLOT).value = newImplementation;
+ *     }
+ * }
+ * ```
+ *
+ * _Available since v4.1 for `address`, `bool`, `bytes32`, and `uint256`._
+ */
+library StorageSlotUpgradeable {
+    struct AddressSlot {
+        address value;
+    }
+
+    struct BooleanSlot {
+        bool value;
+    }
+
+    struct Bytes32Slot {
+        bytes32 value;
+    }
+
+    struct Uint256Slot {
+        uint256 value;
+    }
+
+    /**
+     * @dev Returns an `AddressSlot` with member `value` located at `slot`.
+     */
+    function getAddressSlot(bytes32 slot) internal pure returns (AddressSlot storage r) {
+        assembly {
+            r.slot := slot
+        }
+    }
+
+    /**
+     * @dev Returns an `BooleanSlot` with member `value` located at `slot`.
+     */
+    function getBooleanSlot(bytes32 slot) internal pure returns (BooleanSlot storage r) {
+        assembly {
+            r.slot := slot
+        }
+    }
+
+    /**
+     * @dev Returns an `Bytes32Slot` with member `value` located at `slot`.
+     */
+    function getBytes32Slot(bytes32 slot) internal pure returns (Bytes32Slot storage r) {
+        assembly {
+            r.slot := slot
+        }
+    }
+
+    /**
+     * @dev Returns an `Uint256Slot` with member `value` located at `slot`.
+     */
+    function getUint256Slot(bytes32 slot) internal pure returns (Uint256Slot storage r) {
+        assembly {
+            r.slot := slot
+        }
+    }
+}
+
+
+// File @openzeppelin/contracts-upgradeable/proxy/ERC1967/ERC1967UpgradeUpgradeable.sol@v4.5.2
+
+// SPDX-License-Identifier: MIT
+// OpenZeppelin Contracts (last updated v4.5.0) (proxy/ERC1967/ERC1967Upgrade.sol)
+
+pragma solidity ^0.8.2;
+
+
+
+
+
+/**
+ * @dev This abstract contract provides getters and event emitting update functions for
+ * https://eips.ethereum.org/EIPS/eip-1967[EIP1967] slots.
+ *
+ * _Available since v4.1._
+ *
+ * @custom:oz-upgrades-unsafe-allow delegatecall
+ */
+abstract contract ERC1967UpgradeUpgradeable is Initializable {
+    function __ERC1967Upgrade_init() internal onlyInitializing {
+    }
+
+    function __ERC1967Upgrade_init_unchained() internal onlyInitializing {
+    }
+    // This is the keccak-256 hash of "eip1967.proxy.rollback" subtracted by 1
+    bytes32 private constant _ROLLBACK_SLOT = 0x4910fdfa16fed3260ed0e7147f7cc6da11a60208b5b9406d12a635614ffd9143;
+
+    /**
+     * @dev Storage slot with the address of the current implementation.
+     * This is the keccak-256 hash of "eip1967.proxy.implementation" subtracted by 1, and is
+     * validated in the constructor.
+     */
+    bytes32 internal constant _IMPLEMENTATION_SLOT = 0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc;
+
+    /**
+     * @dev Emitted when the implementation is upgraded.
+     */
+    event Upgraded(address indexed implementation);
+
+    /**
+     * @dev Returns the current implementation address.
+     */
+    function _getImplementation() internal view returns (address) {
+        return StorageSlotUpgradeable.getAddressSlot(_IMPLEMENTATION_SLOT).value;
+    }
+
+    /**
+     * @dev Stores a new address in the EIP1967 implementation slot.
+     */
+    function _setImplementation(address newImplementation) private {
+        require(AddressUpgradeable.isContract(newImplementation), "ERC1967: new implementation is not a contract");
+        StorageSlotUpgradeable.getAddressSlot(_IMPLEMENTATION_SLOT).value = newImplementation;
+    }
+
+    /**
+     * @dev Perform implementation upgrade
+     *
+     * Emits an {Upgraded} event.
+     */
+    function _upgradeTo(address newImplementation) internal {
+        _setImplementation(newImplementation);
+        emit Upgraded(newImplementation);
+    }
+
+    /**
+     * @dev Perform implementation upgrade with additional setup call.
+     *
+     * Emits an {Upgraded} event.
+     */
+    function _upgradeToAndCall(
+        address newImplementation,
+        bytes memory data,
+        bool forceCall
+    ) internal {
+        _upgradeTo(newImplementation);
+        if (data.length > 0 || forceCall) {
+            _functionDelegateCall(newImplementation, data);
+        }
+    }
+
+    /**
+     * @dev Perform implementation upgrade with security checks for UUPS proxies, and additional setup call.
+     *
+     * Emits an {Upgraded} event.
+     */
+    function _upgradeToAndCallUUPS(
+        address newImplementation,
+        bytes memory data,
+        bool forceCall
+    ) internal {
+        // Upgrades from old implementations will perform a rollback test. This test requires the new
+        // implementation to upgrade back to the old, non-ERC1822 compliant, implementation. Removing
+        // this special case will break upgrade paths from old UUPS implementation to new ones.
+        if (StorageSlotUpgradeable.getBooleanSlot(_ROLLBACK_SLOT).value) {
+            _setImplementation(newImplementation);
+        } else {
+            try IERC1822ProxiableUpgradeable(newImplementation).proxiableUUID() returns (bytes32 slot) {
+                require(slot == _IMPLEMENTATION_SLOT, "ERC1967Upgrade: unsupported proxiableUUID");
+            } catch {
+                revert("ERC1967Upgrade: new implementation is not UUPS");
+            }
+            _upgradeToAndCall(newImplementation, data, forceCall);
+        }
+    }
+
+    /**
+     * @dev Storage slot with the admin of the contract.
+     * This is the keccak-256 hash of "eip1967.proxy.admin" subtracted by 1, and is
+     * validated in the constructor.
+     */
+    bytes32 internal constant _ADMIN_SLOT = 0xb53127684a568b3173ae13b9f8a6016e243e63b6e8ee1178d6a717850b5d6103;
+
+    /**
+     * @dev Emitted when the admin account has changed.
+     */
+    event AdminChanged(address previousAdmin, address newAdmin);
+
+    /**
+     * @dev Returns the current admin.
+     */
+    function _getAdmin() internal view returns (address) {
+        return StorageSlotUpgradeable.getAddressSlot(_ADMIN_SLOT).value;
+    }
+
+    /**
+     * @dev Stores a new address in the EIP1967 admin slot.
+     */
+    function _setAdmin(address newAdmin) private {
+        require(newAdmin != address(0), "ERC1967: new admin is the zero address");
+        StorageSlotUpgradeable.getAddressSlot(_ADMIN_SLOT).value = newAdmin;
+    }
+
+    /**
+     * @dev Changes the admin of the proxy.
+     *
+     * Emits an {AdminChanged} event.
+     */
+    function _changeAdmin(address newAdmin) internal {
+        emit AdminChanged(_getAdmin(), newAdmin);
+        _setAdmin(newAdmin);
+    }
+
+    /**
+     * @dev The storage slot of the UpgradeableBeacon contract which defines the implementation for this proxy.
+     * This is bytes32(uint256(keccak256('eip1967.proxy.beacon')) - 1)) and is validated in the constructor.
+     */
+    bytes32 internal constant _BEACON_SLOT = 0xa3f0ad74e5423aebfd80d3ef4346578335a9a72aeaee59ff6cb3582b35133d50;
+
+    /**
+     * @dev Emitted when the beacon is upgraded.
+     */
+    event BeaconUpgraded(address indexed beacon);
+
+    /**
+     * @dev Returns the current beacon.
+     */
+    function _getBeacon() internal view returns (address) {
+        return StorageSlotUpgradeable.getAddressSlot(_BEACON_SLOT).value;
+    }
+
+    /**
+     * @dev Stores a new beacon in the EIP1967 beacon slot.
+     */
+    function _setBeacon(address newBeacon) private {
+        require(AddressUpgradeable.isContract(newBeacon), "ERC1967: new beacon is not a contract");
+        require(
+            AddressUpgradeable.isContract(IBeaconUpgradeable(newBeacon).implementation()),
+            "ERC1967: beacon implementation is not a contract"
+        );
+        StorageSlotUpgradeable.getAddressSlot(_BEACON_SLOT).value = newBeacon;
+    }
+
+    /**
+     * @dev Perform beacon upgrade with additional setup call. Note: This upgrades the address of the beacon, it does
+     * not upgrade the implementation contained in the beacon (see {UpgradeableBeacon-_setImplementation} for that).
+     *
+     * Emits a {BeaconUpgraded} event.
+     */
+    function _upgradeBeaconToAndCall(
+        address newBeacon,
+        bytes memory data,
+        bool forceCall
+    ) internal {
+        _setBeacon(newBeacon);
+        emit BeaconUpgraded(newBeacon);
+        if (data.length > 0 || forceCall) {
+            _functionDelegateCall(IBeaconUpgradeable(newBeacon).implementation(), data);
+        }
+    }
+
+    /**
+     * @dev Same as {xref-Address-functionCall-address-bytes-string-}[`functionCall`],
+     * but performing a delegate call.
+     *
+     * _Available since v3.4._
+     */
+    function _functionDelegateCall(address target, bytes memory data) private returns (bytes memory) {
+        require(AddressUpgradeable.isContract(target), "Address: delegate call to non-contract");
+
+        // solhint-disable-next-line avoid-low-level-calls
+        (bool success, bytes memory returndata) = target.delegatecall(data);
+        return AddressUpgradeable.verifyCallResult(success, returndata, "Address: low-level delegate call failed");
+    }
+
+    /**
+     * @dev This empty reserved space is put in place to allow future versions to add new
+     * variables without shifting down storage in the inheritance chain.
+     * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
+     */
+    uint256[50] private __gap;
+}
+
+
+// File @openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol@v4.5.2
+
+// SPDX-License-Identifier: MIT
+// OpenZeppelin Contracts (last updated v4.5.0) (proxy/utils/UUPSUpgradeable.sol)
+
+pragma solidity ^0.8.0;
+
+
+
+/**
+ * @dev An upgradeability mechanism designed for UUPS proxies. The functions included here can perform an upgrade of an
+ * {ERC1967Proxy}, when this contract is set as the implementation behind such a proxy.
+ *
+ * A security mechanism ensures that an upgrade does not turn off upgradeability accidentally, although this risk is
+ * reinstated if the upgrade retains upgradeability but removes the security mechanism, e.g. by replacing
+ * `UUPSUpgradeable` with a custom implementation of upgrades.
+ *
+ * The {_authorizeUpgrade} function must be overridden to include access restriction to the upgrade mechanism.
+ *
+ * _Available since v4.1._
+ */
+abstract contract UUPSUpgradeable is Initializable, IERC1822ProxiableUpgradeable, ERC1967UpgradeUpgradeable {
+    function __UUPSUpgradeable_init() internal onlyInitializing {
+    }
+
+    function __UUPSUpgradeable_init_unchained() internal onlyInitializing {
+    }
+    /// @custom:oz-upgrades-unsafe-allow state-variable-immutable state-variable-assignment
+    address private immutable __self = address(this);
+
+    /**
+     * @dev Check that the execution is being performed through a delegatecall call and that the execution context is
+     * a proxy contract with an implementation (as defined in ERC1967) pointing to self. This should only be the case
+     * for UUPS and transparent proxies that are using the current contract as their implementation. Execution of a
+     * function through ERC1167 minimal proxies (clones) would not normally pass this test, but is not guaranteed to
+     * fail.
+     */
+    modifier onlyProxy() {
+        require(address(this) != __self, "Function must be called through delegatecall");
+        require(_getImplementation() == __self, "Function must be called through active proxy");
+        _;
+    }
+
+    /**
+     * @dev Check that the execution is not being performed through a delegate call. This allows a function to be
+     * callable on the implementing contract but not through proxies.
+     */
+    modifier notDelegated() {
+        require(address(this) == __self, "UUPSUpgradeable: must not be called through delegatecall");
+        _;
+    }
+
+    /**
+     * @dev Implementation of the ERC1822 {proxiableUUID} function. This returns the storage slot used by the
+     * implementation. It is used to validate that the this implementation remains valid after an upgrade.
+     *
+     * IMPORTANT: A proxy pointing at a proxiable contract should not be considered proxiable itself, because this risks
+     * bricking a proxy that upgrades to it, by delegating to itself until out of gas. Thus it is critical that this
+     * function revert if invoked through a proxy. This is guaranteed by the `notDelegated` modifier.
+     */
+    function proxiableUUID() external view virtual override notDelegated returns (bytes32) {
+        return _IMPLEMENTATION_SLOT;
+    }
+
+    /**
+     * @dev Upgrade the implementation of the proxy to `newImplementation`.
+     *
+     * Calls {_authorizeUpgrade}.
+     *
+     * Emits an {Upgraded} event.
+     */
+    function upgradeTo(address newImplementation) external virtual onlyProxy {
+        _authorizeUpgrade(newImplementation);
+        _upgradeToAndCallUUPS(newImplementation, new bytes(0), false);
+    }
+
+    /**
+     * @dev Upgrade the implementation of the proxy to `newImplementation`, and subsequently execute the function call
+     * encoded in `data`.
+     *
+     * Calls {_authorizeUpgrade}.
+     *
+     * Emits an {Upgraded} event.
+     */
+    function upgradeToAndCall(address newImplementation, bytes memory data) external payable virtual onlyProxy {
+        _authorizeUpgrade(newImplementation);
+        _upgradeToAndCallUUPS(newImplementation, data, true);
+    }
+
+    /**
+     * @dev Function that should revert when `msg.sender` is not authorized to upgrade the contract. Called by
+     * {upgradeTo} and {upgradeToAndCall}.
+     *
+     * Normally, this function will use an xref:access.adoc[access control] modifier such as {Ownable-onlyOwner}.
+     *
+     * ```solidity
+     * function _authorizeUpgrade(address) internal override onlyOwner {}
+     * ```
+     */
+    function _authorizeUpgrade(address newImplementation) internal virtual;
+
+    /**
+     * @dev This empty reserved space is put in place to allow future versions to add new
+     * variables without shifting down storage in the inheritance chain.
+     * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
+     */
+    uint256[50] private __gap;
+}
+
+
 // File contracts/onda-oda-v1.sol
 
 // contracts/Token.sol
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.11;
-
-
-
-
 contract ONDA_ODA_V1 is 
     Initializable,
     OwnableUpgradeable,
@@ -2822,4 +1958,830 @@ contract ONDA_ODA_V1 is
         override
         onlyOwner
     {}
+}
+
+
+// File @openzeppelin/contracts-upgradeable/token/ERC20/utils/SafeERC20Upgradeable.sol@v4.5.2
+
+// SPDX-License-Identifier: MIT
+// OpenZeppelin Contracts v4.4.1 (token/ERC20/utils/SafeERC20.sol)
+
+pragma solidity ^0.8.0;
+
+
+/**
+ * @title SafeERC20
+ * @dev Wrappers around ERC20 operations that throw on failure (when the token
+ * contract returns false). Tokens that return no value (and instead revert or
+ * throw on failure) are also supported, non-reverting calls are assumed to be
+ * successful.
+ * To use this library you can add a `using SafeERC20 for IERC20;` statement to your contract,
+ * which allows you to call the safe operations as `token.safeTransfer(...)`, etc.
+ */
+library SafeERC20Upgradeable {
+    using AddressUpgradeable for address;
+
+    function safeTransfer(
+        IERC20Upgradeable token,
+        address to,
+        uint256 value
+    ) internal {
+        _callOptionalReturn(token, abi.encodeWithSelector(token.transfer.selector, to, value));
+    }
+
+    function safeTransferFrom(
+        IERC20Upgradeable token,
+        address from,
+        address to,
+        uint256 value
+    ) internal {
+        _callOptionalReturn(token, abi.encodeWithSelector(token.transferFrom.selector, from, to, value));
+    }
+
+    /**
+     * @dev Deprecated. This function has issues similar to the ones found in
+     * {IERC20-approve}, and its usage is discouraged.
+     *
+     * Whenever possible, use {safeIncreaseAllowance} and
+     * {safeDecreaseAllowance} instead.
+     */
+    function safeApprove(
+        IERC20Upgradeable token,
+        address spender,
+        uint256 value
+    ) internal {
+        // safeApprove should only be called when setting an initial allowance,
+        // or when resetting it to zero. To increase and decrease it, use
+        // 'safeIncreaseAllowance' and 'safeDecreaseAllowance'
+        require(
+            (value == 0) || (token.allowance(address(this), spender) == 0),
+            "SafeERC20: approve from non-zero to non-zero allowance"
+        );
+        _callOptionalReturn(token, abi.encodeWithSelector(token.approve.selector, spender, value));
+    }
+
+    function safeIncreaseAllowance(
+        IERC20Upgradeable token,
+        address spender,
+        uint256 value
+    ) internal {
+        uint256 newAllowance = token.allowance(address(this), spender) + value;
+        _callOptionalReturn(token, abi.encodeWithSelector(token.approve.selector, spender, newAllowance));
+    }
+
+    function safeDecreaseAllowance(
+        IERC20Upgradeable token,
+        address spender,
+        uint256 value
+    ) internal {
+        unchecked {
+            uint256 oldAllowance = token.allowance(address(this), spender);
+            require(oldAllowance >= value, "SafeERC20: decreased allowance below zero");
+            uint256 newAllowance = oldAllowance - value;
+            _callOptionalReturn(token, abi.encodeWithSelector(token.approve.selector, spender, newAllowance));
+        }
+    }
+
+    /**
+     * @dev Imitates a Solidity high-level call (i.e. a regular function call to a contract), relaxing the requirement
+     * on the return value: the return value is optional (but if data is returned, it must not be false).
+     * @param token The token targeted by the call.
+     * @param data The call data (encoded using abi.encode or one of its variants).
+     */
+    function _callOptionalReturn(IERC20Upgradeable token, bytes memory data) private {
+        // We need to perform a low level call here, to bypass Solidity's return data size checking mechanism, since
+        // we're implementing it ourselves. We use {Address.functionCall} to perform this call, which verifies that
+        // the target address contains contract code and also asserts for success in the low-level call.
+
+        bytes memory returndata = address(token).functionCall(data, "SafeERC20: low-level call failed");
+        if (returndata.length > 0) {
+            // Return data is optional
+            require(abi.decode(returndata, (bool)), "SafeERC20: ERC20 operation did not succeed");
+        }
+    }
+}
+
+
+// File @openzeppelin/contracts-upgradeable/security/ReentrancyGuardUpgradeable.sol@v4.5.2
+
+// SPDX-License-Identifier: MIT
+// OpenZeppelin Contracts v4.4.1 (security/ReentrancyGuard.sol)
+
+pragma solidity ^0.8.0;
+
+/**
+ * @dev Contract module that helps prevent reentrant calls to a function.
+ *
+ * Inheriting from `ReentrancyGuard` will make the {nonReentrant} modifier
+ * available, which can be applied to functions to make sure there are no nested
+ * (reentrant) calls to them.
+ *
+ * Note that because there is a single `nonReentrant` guard, functions marked as
+ * `nonReentrant` may not call one another. This can be worked around by making
+ * those functions `private`, and then adding `external` `nonReentrant` entry
+ * points to them.
+ *
+ * TIP: If you would like to learn more about reentrancy and alternative ways
+ * to protect against it, check out our blog post
+ * https://blog.openzeppelin.com/reentrancy-after-istanbul/[Reentrancy After Istanbul].
+ */
+abstract contract ReentrancyGuardUpgradeable is Initializable {
+    // Booleans are more expensive than uint256 or any type that takes up a full
+    // word because each write operation emits an extra SLOAD to first read the
+    // slot's contents, replace the bits taken up by the boolean, and then write
+    // back. This is the compiler's defense against contract upgrades and
+    // pointer aliasing, and it cannot be disabled.
+
+    // The values being non-zero value makes deployment a bit more expensive,
+    // but in exchange the refund on every call to nonReentrant will be lower in
+    // amount. Since refunds are capped to a percentage of the total
+    // transaction's gas, it is best to keep them low in cases like this one, to
+    // increase the likelihood of the full refund coming into effect.
+    uint256 private constant _NOT_ENTERED = 1;
+    uint256 private constant _ENTERED = 2;
+
+    uint256 private _status;
+
+    function __ReentrancyGuard_init() internal onlyInitializing {
+        __ReentrancyGuard_init_unchained();
+    }
+
+    function __ReentrancyGuard_init_unchained() internal onlyInitializing {
+        _status = _NOT_ENTERED;
+    }
+
+    /**
+     * @dev Prevents a contract from calling itself, directly or indirectly.
+     * Calling a `nonReentrant` function from another `nonReentrant`
+     * function is not supported. It is possible to prevent this from happening
+     * by making the `nonReentrant` function external, and making it call a
+     * `private` function that does the actual work.
+     */
+    modifier nonReentrant() {
+        // On the first call to nonReentrant, _notEntered will be true
+        require(_status != _ENTERED, "ReentrancyGuard: reentrant call");
+
+        // Any calls to nonReentrant after this point will fail
+        _status = _ENTERED;
+
+        _;
+
+        // By storing the original value once again, a refund is triggered (see
+        // https://eips.ethereum.org/EIPS/eip-2200)
+        _status = _NOT_ENTERED;
+    }
+
+    /**
+     * @dev This empty reserved space is put in place to allow future versions to add new
+     * variables without shifting down storage in the inheritance chain.
+     * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
+     */
+    uint256[49] private __gap;
+}
+
+
+// File @openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol@v4.5.2
+
+// SPDX-License-Identifier: MIT
+// OpenZeppelin Contracts (last updated v4.5.0) (utils/math/Math.sol)
+
+pragma solidity ^0.8.0;
+
+/**
+ * @dev Standard math utilities missing in the Solidity language.
+ */
+library MathUpgradeable {
+    /**
+     * @dev Returns the largest of two numbers.
+     */
+    function max(uint256 a, uint256 b) internal pure returns (uint256) {
+        return a >= b ? a : b;
+    }
+
+    /**
+     * @dev Returns the smallest of two numbers.
+     */
+    function min(uint256 a, uint256 b) internal pure returns (uint256) {
+        return a < b ? a : b;
+    }
+
+    /**
+     * @dev Returns the average of two numbers. The result is rounded towards
+     * zero.
+     */
+    function average(uint256 a, uint256 b) internal pure returns (uint256) {
+        // (a + b) / 2 can overflow.
+        return (a & b) + (a ^ b) / 2;
+    }
+
+    /**
+     * @dev Returns the ceiling of the division of two numbers.
+     *
+     * This differs from standard division with `/` in that it rounds up instead
+     * of rounding down.
+     */
+    function ceilDiv(uint256 a, uint256 b) internal pure returns (uint256) {
+        // (a + b - 1) / b can overflow on addition, so we distribute.
+        return a / b + (a % b == 0 ? 0 : 1);
+    }
+}
+
+
+// File @openzeppelin/contracts-upgradeable/utils/math/SafeMathUpgradeable.sol@v4.5.2
+
+// SPDX-License-Identifier: MIT
+// OpenZeppelin Contracts v4.4.1 (utils/math/SafeMath.sol)
+
+pragma solidity ^0.8.0;
+
+// CAUTION
+// This version of SafeMath should only be used with Solidity 0.8 or later,
+// because it relies on the compiler's built in overflow checks.
+
+/**
+ * @dev Wrappers over Solidity's arithmetic operations.
+ *
+ * NOTE: `SafeMath` is generally not needed starting with Solidity 0.8, since the compiler
+ * now has built in overflow checking.
+ */
+library SafeMathUpgradeable {
+    /**
+     * @dev Returns the addition of two unsigned integers, with an overflow flag.
+     *
+     * _Available since v3.4._
+     */
+    function tryAdd(uint256 a, uint256 b) internal pure returns (bool, uint256) {
+        unchecked {
+            uint256 c = a + b;
+            if (c < a) return (false, 0);
+            return (true, c);
+        }
+    }
+
+    /**
+     * @dev Returns the substraction of two unsigned integers, with an overflow flag.
+     *
+     * _Available since v3.4._
+     */
+    function trySub(uint256 a, uint256 b) internal pure returns (bool, uint256) {
+        unchecked {
+            if (b > a) return (false, 0);
+            return (true, a - b);
+        }
+    }
+
+    /**
+     * @dev Returns the multiplication of two unsigned integers, with an overflow flag.
+     *
+     * _Available since v3.4._
+     */
+    function tryMul(uint256 a, uint256 b) internal pure returns (bool, uint256) {
+        unchecked {
+            // Gas optimization: this is cheaper than requiring 'a' not being zero, but the
+            // benefit is lost if 'b' is also tested.
+            // See: https://github.com/OpenZeppelin/openzeppelin-contracts/pull/522
+            if (a == 0) return (true, 0);
+            uint256 c = a * b;
+            if (c / a != b) return (false, 0);
+            return (true, c);
+        }
+    }
+
+    /**
+     * @dev Returns the division of two unsigned integers, with a division by zero flag.
+     *
+     * _Available since v3.4._
+     */
+    function tryDiv(uint256 a, uint256 b) internal pure returns (bool, uint256) {
+        unchecked {
+            if (b == 0) return (false, 0);
+            return (true, a / b);
+        }
+    }
+
+    /**
+     * @dev Returns the remainder of dividing two unsigned integers, with a division by zero flag.
+     *
+     * _Available since v3.4._
+     */
+    function tryMod(uint256 a, uint256 b) internal pure returns (bool, uint256) {
+        unchecked {
+            if (b == 0) return (false, 0);
+            return (true, a % b);
+        }
+    }
+
+    /**
+     * @dev Returns the addition of two unsigned integers, reverting on
+     * overflow.
+     *
+     * Counterpart to Solidity's `+` operator.
+     *
+     * Requirements:
+     *
+     * - Addition cannot overflow.
+     */
+    function add(uint256 a, uint256 b) internal pure returns (uint256) {
+        return a + b;
+    }
+
+    /**
+     * @dev Returns the subtraction of two unsigned integers, reverting on
+     * overflow (when the result is negative).
+     *
+     * Counterpart to Solidity's `-` operator.
+     *
+     * Requirements:
+     *
+     * - Subtraction cannot overflow.
+     */
+    function sub(uint256 a, uint256 b) internal pure returns (uint256) {
+        return a - b;
+    }
+
+    /**
+     * @dev Returns the multiplication of two unsigned integers, reverting on
+     * overflow.
+     *
+     * Counterpart to Solidity's `*` operator.
+     *
+     * Requirements:
+     *
+     * - Multiplication cannot overflow.
+     */
+    function mul(uint256 a, uint256 b) internal pure returns (uint256) {
+        return a * b;
+    }
+
+    /**
+     * @dev Returns the integer division of two unsigned integers, reverting on
+     * division by zero. The result is rounded towards zero.
+     *
+     * Counterpart to Solidity's `/` operator.
+     *
+     * Requirements:
+     *
+     * - The divisor cannot be zero.
+     */
+    function div(uint256 a, uint256 b) internal pure returns (uint256) {
+        return a / b;
+    }
+
+    /**
+     * @dev Returns the remainder of dividing two unsigned integers. (unsigned integer modulo),
+     * reverting when dividing by zero.
+     *
+     * Counterpart to Solidity's `%` operator. This function uses a `revert`
+     * opcode (which leaves remaining gas untouched) while Solidity uses an
+     * invalid opcode to revert (consuming all remaining gas).
+     *
+     * Requirements:
+     *
+     * - The divisor cannot be zero.
+     */
+    function mod(uint256 a, uint256 b) internal pure returns (uint256) {
+        return a % b;
+    }
+
+    /**
+     * @dev Returns the subtraction of two unsigned integers, reverting with custom message on
+     * overflow (when the result is negative).
+     *
+     * CAUTION: This function is deprecated because it requires allocating memory for the error
+     * message unnecessarily. For custom revert reasons use {trySub}.
+     *
+     * Counterpart to Solidity's `-` operator.
+     *
+     * Requirements:
+     *
+     * - Subtraction cannot overflow.
+     */
+    function sub(
+        uint256 a,
+        uint256 b,
+        string memory errorMessage
+    ) internal pure returns (uint256) {
+        unchecked {
+            require(b <= a, errorMessage);
+            return a - b;
+        }
+    }
+
+    /**
+     * @dev Returns the integer division of two unsigned integers, reverting with custom message on
+     * division by zero. The result is rounded towards zero.
+     *
+     * Counterpart to Solidity's `/` operator. Note: this function uses a
+     * `revert` opcode (which leaves remaining gas untouched) while Solidity
+     * uses an invalid opcode to revert (consuming all remaining gas).
+     *
+     * Requirements:
+     *
+     * - The divisor cannot be zero.
+     */
+    function div(
+        uint256 a,
+        uint256 b,
+        string memory errorMessage
+    ) internal pure returns (uint256) {
+        unchecked {
+            require(b > 0, errorMessage);
+            return a / b;
+        }
+    }
+
+    /**
+     * @dev Returns the remainder of dividing two unsigned integers. (unsigned integer modulo),
+     * reverting with custom message when dividing by zero.
+     *
+     * CAUTION: This function is deprecated because it requires allocating memory for the error
+     * message unnecessarily. For custom revert reasons use {tryMod}.
+     *
+     * Counterpart to Solidity's `%` operator. This function uses a `revert`
+     * opcode (which leaves remaining gas untouched) while Solidity uses an
+     * invalid opcode to revert (consuming all remaining gas).
+     *
+     * Requirements:
+     *
+     * - The divisor cannot be zero.
+     */
+    function mod(
+        uint256 a,
+        uint256 b,
+        string memory errorMessage
+    ) internal pure returns (uint256) {
+        unchecked {
+            require(b > 0, errorMessage);
+            return a % b;
+        }
+    }
+}
+
+
+// File contracts/onda-vesting-v1.sol
+
+// contracts/TokenVesting.sol
+// SPDX-License-Identifier: Apache-2.0
+pragma solidity ^0.8.11;
+/**
+ * @title TokenVesting
+ */
+contract ONDA_Vesting_V1 is 
+    Initializable,
+    OwnableUpgradeable,
+    UUPSUpgradeable,
+    ReentrancyGuardUpgradeable {
+    
+    using SafeMathUpgradeable for uint256;
+    using SafeERC20Upgradeable for IERC20Upgradeable;
+    
+    struct VestingSchedule{
+        bool initialized;
+        // beneficiary of tokens after they are released
+        address  beneficiary;
+        // cliff period in seconds
+        uint256  cliff;
+        // start time of the vesting period
+        uint256  start;
+        // duration of the vesting period in seconds
+        uint256  duration;
+        // duration of a slice period for the vesting in seconds
+        uint256 slicePeriodSeconds;
+        // whether or not the vesting is revocable
+        bool  revocable;
+        // total amount of tokens to be released at the end of the vesting
+        uint256 amountTotal;
+        // amount of tokens released
+        uint256  released;
+        // whether or not the vesting has been revoked
+        bool revoked;
+    }
+
+    // address of the ERC20 token
+    IERC20Upgradeable private _token;
+
+    bytes32[] private vestingSchedulesIds;
+    mapping(bytes32 => VestingSchedule) private vestingSchedules;
+    uint256 private vestingSchedulesTotalAmount;
+    mapping(address => uint256) private holdersVestingCount;
+
+    event Released(uint256 amount);
+    event Revoked();
+
+    /**
+    * @dev Reverts if no vesting schedule matches the passed identifier.
+    */
+    modifier onlyIfVestingScheduleExists(bytes32 vestingScheduleId) {
+        require(vestingSchedules[vestingScheduleId].initialized == true, "TokenVesting: not intialized");
+        _;
+    }
+
+    /**
+    * @dev Reverts if the vesting schedule does not exist or has been revoked.
+    */
+    modifier onlyIfVestingScheduleNotRevoked(bytes32 vestingScheduleId) {
+        require(vestingSchedules[vestingScheduleId].initialized == true, "TokenVesting: not intialized");
+        require(vestingSchedules[vestingScheduleId].revoked == false, "TokenVesting: already revoked");
+        _;
+    }
+
+    /**
+     * @dev Creates a vesting contract.
+     * @param token_ address of the ERC20 token contract
+     */
+    function initialize(address token_) public initializer {
+        __Ownable_init();
+        __UUPSUpgradeable_init();
+        require(token_ != address(0x0), "TokenVesting: token address is 0x");
+         _token = IERC20Upgradeable(token_);
+    }
+
+    receive() external payable {}
+
+    fallback() external payable {}
+
+    /**
+    * @dev Returns the number of vesting schedules associated to a beneficiary.
+    * @return the number of vesting schedules
+    */
+    function getVestingSchedulesCountByBeneficiary(address _beneficiary)
+    external
+    view
+    returns(uint256){
+        return holdersVestingCount[_beneficiary];
+    }
+
+    /**
+    * @dev Returns the vesting schedule id at the given index.
+    * @return the vesting id
+    */
+    function getVestingIdAtIndex(uint256 index)
+    external
+    view
+    returns(bytes32){
+        require(index < getVestingSchedulesCount(), "TokenVesting: index out of bounds");
+        return vestingSchedulesIds[index];
+    }
+
+    /**
+    * @notice Returns the vesting schedule information for a given holder and index.
+    * @return the vesting schedule structure information
+    */
+    function getVestingScheduleByAddressAndIndex(address holder, uint256 index)
+    external
+    view
+    returns(VestingSchedule memory){
+        return getVestingSchedule(computeVestingScheduleIdForAddressAndIndex(holder, index));
+    }
+
+
+    /**
+    * @notice Returns the total amount of vesting schedules.
+    * @return the total amount of vesting schedules
+    */
+    function getVestingSchedulesTotalAmount()
+    external
+    view
+    returns(uint256){
+        return vestingSchedulesTotalAmount;
+    }
+
+    /**
+    * @dev Returns the address of the ERC20 token managed by the vesting contract.
+    */
+    function getToken()
+    external
+    view
+    returns(address){
+        return address(_token);
+    }
+
+    /**
+    * @notice Creates a new vesting schedule for a beneficiary.
+    * @param _beneficiary address of the beneficiary to whom vested tokens are transferred
+    * @param _start start time of the vesting period
+    * @param _cliff duration in seconds of the cliff in which tokens will begin to vest
+    * @param _duration duration in seconds of the period in which the tokens will vest
+    * @param _slicePeriodSeconds duration of a slice period for the vesting in seconds
+    * @param _revocable whether the vesting is revocable or not
+    * @param _amount total amount of tokens to be released at the end of the vesting
+    */
+    function createVestingSchedule(
+        address _beneficiary,
+        uint256 _start,
+        uint256 _cliff,
+        uint256 _duration,
+        uint256 _slicePeriodSeconds,
+        bool _revocable,
+        uint256 _amount
+    )
+        public
+        onlyOwner{
+        require(
+            this.getWithdrawableAmount() >= _amount,
+            "TokenVesting: cannot create vesting schedule because not sufficient tokens"
+        );
+        require(_duration > 0, "TokenVesting: duration must be > 0");
+        require(_amount > 0, "TokenVesting: amount must be > 0");
+        require(_cliff <= _duration, "invalid cliff");
+        require(_slicePeriodSeconds >= 1, "TokenVesting: slicePeriodSeconds must be >= 1");
+
+        bytes32 vestingScheduleId = this.computeNextVestingScheduleIdForHolder(_beneficiary);
+        uint256 cliff = _start.add(_cliff);
+        vestingSchedules[vestingScheduleId] = VestingSchedule(
+            true,
+            _beneficiary,
+            cliff,
+            _start,
+            _duration,
+            _slicePeriodSeconds,
+            _revocable,
+            _amount,
+            0,
+            false
+        );
+        vestingSchedulesTotalAmount = vestingSchedulesTotalAmount.add(_amount);
+        vestingSchedulesIds.push(vestingScheduleId);
+        uint256 currentVestingCount = holdersVestingCount[_beneficiary];
+        holdersVestingCount[_beneficiary] = currentVestingCount.add(1);
+
+        // todo: add event emit
+    }
+
+    /**
+    * @notice Revokes the vesting schedule for given identifier.
+    * @param vestingScheduleId the vesting schedule identifier
+    */
+    function revoke(bytes32 vestingScheduleId)
+        public
+        onlyOwner
+        onlyIfVestingScheduleNotRevoked(vestingScheduleId){
+        VestingSchedule storage vestingSchedule = vestingSchedules[vestingScheduleId];
+        require(vestingSchedule.revocable == true, "TokenVesting: vesting is not revocable");
+        uint256 vestedAmount = _computeReleasableAmount(vestingSchedule);
+        if(vestedAmount > 0){
+            release(vestingScheduleId, vestedAmount);
+        }
+        uint256 unreleased = vestingSchedule.amountTotal.sub(vestingSchedule.released);
+        vestingSchedulesTotalAmount = vestingSchedulesTotalAmount.sub(unreleased);
+        vestingSchedule.revoked = true;
+
+        // todo: add event emit
+    }
+
+    /**
+    * @notice Withdraw the specified amount if possible.
+    * @param amount the amount to withdraw
+    */
+    function withdraw(uint256 amount)
+        public
+        nonReentrant
+        onlyOwner{
+        require(this.getWithdrawableAmount() >= amount, "TokenVesting: not enough withdrawable funds");
+        _token.safeTransfer(owner(), amount);
+
+        // todo: add event emit
+    }
+
+    /**
+    * @notice Release vested amount of tokens.
+    * @param vestingScheduleId the vesting schedule identifier
+    * @param amount the amount to release
+    */
+    function release(
+        bytes32 vestingScheduleId,
+        uint256 amount
+    )
+        public
+        nonReentrant
+        onlyIfVestingScheduleNotRevoked(vestingScheduleId){
+        VestingSchedule storage vestingSchedule = vestingSchedules[vestingScheduleId];
+        bool isBeneficiary = msg.sender == vestingSchedule.beneficiary;
+        bool isOwner = msg.sender == owner();
+        require(
+            isBeneficiary || isOwner,
+            "TokenVesting: only beneficiary and owner can release vested tokens"
+        );
+        uint256 vestedAmount = _computeReleasableAmount(vestingSchedule);
+        require(vestedAmount >= amount, "TokenVesting: cannot release tokens, not enough vested tokens");
+        vestingSchedule.released = vestingSchedule.released.add(amount);
+        address payable beneficiaryPayable = payable(vestingSchedule.beneficiary);
+        vestingSchedulesTotalAmount = vestingSchedulesTotalAmount.sub(amount);
+        _token.safeTransfer(beneficiaryPayable, amount);
+    }
+
+    /**
+    * @dev Returns the number of vesting schedules managed by this contract.
+    * @return the number of vesting schedules
+    */
+    function getVestingSchedulesCount()
+        public
+        view
+        returns(uint256){
+        return vestingSchedulesIds.length;
+    }
+
+    /**
+    * @notice Computes the vested amount of tokens for the given vesting schedule identifier.
+    * @return the vested amount
+    */
+    function computeReleasableAmount(bytes32 vestingScheduleId)
+        public
+        onlyIfVestingScheduleNotRevoked(vestingScheduleId)
+        view
+        returns(uint256){
+        VestingSchedule storage vestingSchedule = vestingSchedules[vestingScheduleId];
+        return _computeReleasableAmount(vestingSchedule);
+    }
+
+    /**
+    * @notice Returns the vesting schedule information for a given identifier.
+    * @return the vesting schedule structure information
+    */
+    function getVestingSchedule(bytes32 vestingScheduleId)
+        public
+        view
+        returns(VestingSchedule memory){
+        return vestingSchedules[vestingScheduleId];
+    }
+
+    /**
+    * @dev Returns the amount of tokens that can be withdrawn by the owner.
+    * @return the amount of tokens
+    */
+    function getWithdrawableAmount()
+        public
+        view
+        returns(uint256){
+        return _token.balanceOf(address(this)).sub(vestingSchedulesTotalAmount);
+    }
+
+    /**
+    * @dev Computes the next vesting schedule identifier for a given holder address.
+    */
+    function computeNextVestingScheduleIdForHolder(address holder)
+        public
+        view
+        returns(bytes32){
+        return computeVestingScheduleIdForAddressAndIndex(holder, holdersVestingCount[holder]);
+    }
+
+    /**
+    * @dev Returns the last vesting schedule for a given holder address.
+    */
+    function getLastVestingScheduleForHolder(address holder)
+        public
+        view
+        returns(VestingSchedule memory){
+        return vestingSchedules[computeVestingScheduleIdForAddressAndIndex(holder, holdersVestingCount[holder] - 1)];
+    }
+
+    /**
+    * @dev Computes the vesting schedule identifier for an address and an index.
+    */
+    function computeVestingScheduleIdForAddressAndIndex(address holder, uint256 index)
+        public
+        pure
+        returns(bytes32){
+        return keccak256(abi.encodePacked(holder, index));
+    }
+
+    function _authorizeUpgrade(address newImplementation)
+        internal
+        override
+        onlyOwner
+    {}
+
+    /**
+    * @dev Computes the releasable amount of tokens for a vesting schedule.
+    * @return the amount of releasable tokens
+    */
+    function _computeReleasableAmount(VestingSchedule memory vestingSchedule)
+    internal
+    view
+    returns(uint256){
+        uint256 currentTime = getCurrentTime();
+        if ((currentTime < vestingSchedule.cliff) || vestingSchedule.revoked == true) {
+            return 0;
+        } else if (currentTime >= vestingSchedule.start.add(vestingSchedule.duration)) {
+            return vestingSchedule.amountTotal.sub(vestingSchedule.released);
+        } else {
+            uint256 timeFromStart = currentTime.sub(vestingSchedule.start);
+            uint secondsPerSlice = vestingSchedule.slicePeriodSeconds;
+            uint256 vestedSlicePeriods = timeFromStart.div(secondsPerSlice);
+            uint256 vestedSeconds = vestedSlicePeriods.mul(secondsPerSlice);
+            uint256 vestedAmount = vestingSchedule.amountTotal.mul(vestedSeconds).div(vestingSchedule.duration);
+            vestedAmount = vestedAmount.sub(vestingSchedule.released);
+            return vestedAmount;
+        }
+    }
+
+    function getCurrentTime()
+        internal
+        virtual
+        view
+        returns(uint256){
+        return block.timestamp;
+    }
+
 }
